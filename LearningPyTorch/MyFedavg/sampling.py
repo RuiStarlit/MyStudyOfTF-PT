@@ -64,4 +64,21 @@ def cifar100_noniid(dataset, n_users):
     :return: a dict of clients with each clients assigned certain
     number of training imgs
     """
-    raise NotImplementedError()
+    n_shards, n_imgs = 200, 250  # 200碎片，一个碎片250图像
+    idx_shard = [i for i in range(n_shards)]
+    dict_users = {i: np.array([]) for i in range(n_users)}
+    idxs = np.arange(n_shards * n_imgs)
+    labels = np.array(dataset.targets)
+
+    # sort the data labels
+    idxs_labels = np.vstack((idxs, labels))
+    idxs_labels = idxs_labels[:, idxs_labels[1, :].argsort()]
+    idxs = idxs_labels[0, :]
+
+    # 分割并指派 每个用户分到的碎片可能重复
+    for i in range(n_users):
+        rand_set = np.random.choice(idx_shard, 2, replace=False)
+        for rand in rand_set:
+            dict_users[i] = np.concatenate(
+                (dict_users[i], idxs[rand * n_imgs:(rand + 1) * n_imgs]), axis=0)
+    return dict_users

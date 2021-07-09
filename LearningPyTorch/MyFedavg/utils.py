@@ -11,7 +11,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
-from sampling import cifar10_noniid, DatasetSplit
+from sampling import cifar10_noniid, DatasetSplit,cifar100_noniid
 
 
 def average_weights(w):
@@ -32,7 +32,8 @@ class LocalUpdate(object):
         self.args = args
         self.trainloader, self.validloader, self.testloader = self.train_val_test(
             dataset, list(idxs))
-        self.device = 'cuda' if args.gpu else 'cpu'
+        self.device = args.device
+        # self.device = "cuda" if torch.cuda.is_available() else "cpu"
         # Default criterion set to NLL loss function
         self.criterion = nn.NLLLoss().to(self.device)
 
@@ -58,6 +59,7 @@ class LocalUpdate(object):
         # Set mode to train model
         model.train()
         epoch_loss = []
+
 
         # Set optimizer for the local updates
         if self.args.optimizer == 'sgd':
@@ -114,18 +116,34 @@ class LocalUpdate(object):
 
 
 def get_dataset(args):
-    data_dir = '../data/cifar/'
-    apply_transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    if args.dataset == 'cifar10':
+        data_dir = '../data/cifar10/'
+        apply_transform = transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
-                                     transform=apply_transform)
+        train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
+                                         transform=apply_transform)
 
-    test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
-                                    transform=apply_transform)
-    user_groups = cifar10_noniid(train_dataset, args.num_users)
-    return train_dataset, test_dataset, user_groups
+        test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
+                                        transform=apply_transform)
+        user_groups = cifar10_noniid(train_dataset, args.num_users)
+        return train_dataset, test_dataset, user_groups
+    elif args.dataset == 'cifar100':
+        data_dir = '../data/cifar100/'
+        apply_transform = transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+        train_dataset = datasets.CIFAR100(data_dir, train=True, download=True,
+                                         transform=apply_transform)
+
+        test_dataset = datasets.CIFAR100(data_dir, train=False, download=True,
+                                        transform=apply_transform)
+        user_groups = cifar100_noniid(train_dataset, args.num_users)
+        return train_dataset, test_dataset, user_groups
+    else:
+        raise NotImplementedError()
 
 def test_inference(args, model, test_dataset):
     """ Returns the test accuracy and loss.
@@ -134,7 +152,8 @@ def test_inference(args, model, test_dataset):
     model.eval()
     loss, total, correct = 0.0, 0.0, 0.0
 
-    device = 'cuda' if args.gpu else 'cpu'
+    device = args.device
+    # device = "cuda" if torch.cuda.is_available() else "cpu"
     criterion = nn.NLLLoss().to(device)
     testloader = DataLoader(test_dataset, batch_size=128,
                             shuffle=False)

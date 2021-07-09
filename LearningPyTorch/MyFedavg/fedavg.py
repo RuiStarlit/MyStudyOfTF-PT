@@ -39,19 +39,20 @@ class CNNCifar(nn.Module):
         return F.log_softmax(x, dim=1)
 
 
-class Arg():
+class Arg:
     def __init__(self):
         self.gpu = 0
         self.num_users = 100
-        self.dataset = 'cifar10'
+        self.dataset = 'cifar100'
         self.epochs = 10
         self.frac = 0.1
-        self.num_classes = 10
+        self.num_classes = 10 if self.dataset == 'cifar10' else 100
         self.local_bs = 10
         self.local_ep = 10
         self.lr = 0.01  # learning rate
         self.optimizer = 'sgd'
         self.verbose = 1
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 args = Arg()
@@ -61,7 +62,11 @@ start_time = time.time()
 # using CPU
 torch.cuda.set_device(0)
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
+# device = 'cpu'
+device = args.device
+print('deviece:', device)
+print('Dataset:', args.dataset)
+print('Num of classes:', args.num_classes)
 global_model = CNNCifar(args)
 
 global_model.to(device)
