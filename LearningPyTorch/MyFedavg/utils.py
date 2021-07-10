@@ -76,7 +76,8 @@ class LocalUpdate(object):
 
                 model.zero_grad()
                 log_probs = model(images)
-                loss = self.criterion(log_probs, labels)
+                # loss = self.criterion(log_probs, labels)
+                loss = torch.nn.functional.cross_entropy(log_probs, labels)
                 loss.backward()
                 optimizer.step()
 
@@ -121,6 +122,7 @@ def get_dataset(args):
         apply_transform = transforms.Compose(
             [transforms.ToTensor(),
              transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        # ToTensor()能够把灰度范围从0-255变换到0-1之间，而后面的transform.Normalize()则把0-1变换到(-1,1)
 
         train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
                                          transform=apply_transform)

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8f6e134a-3ac2-4626-b159-610fe40fa30e" name="Default Changelist" comment="some try">
+    <list default="true" id="8f6e134a-3ac2-4626-b159-610fe40fa30e" name="Default Changelist" comment="failed to train on cifat100">
+      <change afterPath="$PROJECT_DIR$/MyFedavg/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MyFedavg/fedavg.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyFedavg/fedavg.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MyFedavg/sampling.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyFedavg/sampling.py" afterDir="false" />
@@ -39,9 +40,9 @@
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="fileTemplates" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.appearance" />
   </component>
-  <component name="RunManager" selected="Python.fedavg (3)">
+  <component name="RunManager" selected="Python.fedavg (4)">
     <configuration name="fedavg (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="LearningPyTorch" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -108,7 +109,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="fedavg" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="fedavg (4)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="LearningPyTorch" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -116,12 +117,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/fedavg.pytorch-master/src/fed_zoo" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/MyFedavg" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/fedavg.pytorch-master/src/fed_zoo/fedavg.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MyFedavg/fedavg.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -154,11 +155,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.fedavg (4)" />
         <item itemvalue="Python.fedavg (3)" />
         <item itemvalue="Python.fedavg (2)" />
         <item itemvalue="Python.fedavg (1)" />
         <item itemvalue="Python.test1" />
-        <item itemvalue="Python.fedavg" />
       </list>
     </recent_temporary>
   </component>
@@ -177,7 +178,8 @@
       <workItem from="1625622493920" duration="3579000" />
       <workItem from="1625646815718" duration="12836000" />
       <workItem from="1625815456206" duration="3749000" />
-      <workItem from="1625838101818" duration="3412000" />
+      <workItem from="1625838101818" duration="7261000" />
+      <workItem from="1625883422892" duration="1378000" />
     </task>
     <task id="LOCAL-00001" summary="n">
       <created>1625469815190</created>
@@ -193,7 +195,14 @@
       <option name="project" value="LOCAL" />
       <updated>1625815491914</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="failed to train on cifat100">
+      <created>1625845113299</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1625845113299</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -214,12 +223,14 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="n" />
     <MESSAGE value="some try" />
-    <option name="LAST_COMMIT_MESSAGE" value="some try" />
+    <MESSAGE value="failed to train on cifat100" />
+    <option name="LAST_COMMIT_MESSAGE" value="failed to train on cifat100" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/LearningPyTorch$train.coverage" NAME="train Coverage Results" MODIFIED="1625491929495" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/fedavg.pytorch-master" />
     <SUITE FILE_PATH="coverage/LearningPyTorch$test1.coverage" NAME="test1 Coverage Results" MODIFIED="1625655902682" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/MyFedavg" />
-    <SUITE FILE_PATH="coverage/LearningPyTorch$fedavg__3_.coverage" NAME="fedavg (3) Coverage Results" MODIFIED="1625844502994" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/MyFedavg" />
+    <SUITE FILE_PATH="coverage/LearningPyTorch$fedavg__4_.coverage" NAME="fedavg (4) Coverage Results" MODIFIED="1625884424937" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/MyFedavg" />
+    <SUITE FILE_PATH="coverage/LearningPyTorch$fedavg__3_.coverage" NAME="fedavg (3) Coverage Results" MODIFIED="1625848553628" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/MyFedavg" />
     <SUITE FILE_PATH="coverage/LearningPyTorch$main.coverage" NAME="main Coverage Results" MODIFIED="1625469760264" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/LearningPyTorch$fedavg__1_.coverage" NAME="fedavg (1) Coverage Results" MODIFIED="1625665629447" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/MyFedavg" />
     <SUITE FILE_PATH="coverage/LearningPyTorch$fedavg__2_.coverage" NAME="fedavg (2) Coverage Results" MODIFIED="1625831613710" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/MyFedavg" />

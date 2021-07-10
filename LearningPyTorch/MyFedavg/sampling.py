@@ -64,7 +64,7 @@ def cifar100_noniid(dataset, n_users):
     :return: a dict of clients with each clients assigned certain
     number of training imgs
     """
-    n_shards, n_imgs = 200, 250  # 200碎片，一个碎片250图像
+    n_shards, n_imgs = 200, 250
     idx_shard = [i for i in range(n_shards)]
     dict_users = {i: np.array([]) for i in range(n_users)}
     idxs = np.arange(n_shards * n_imgs)

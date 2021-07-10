@@ -13,46 +13,26 @@ import numpy as np
 from tqdm import tqdm
 
 import torch
-from torch import nn
-import torch.nn.functional as F
 
 from utils import average_weights, LocalUpdate, get_dataset, test_inference
-
-
-class CNNCifar(nn.Module):
-    def __init__(self, args):
-        super(CNNCifar, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, args.num_classes)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return F.log_softmax(x, dim=1)
+from models import MyCNN
 
 
 class Arg:
     def __init__(self):
         self.gpu = 0
-        self.num_users = 100
+        self.num_users = 1000
         self.dataset = 'cifar100'
         self.epochs = 10
-        self.frac = 0.1
+        self.frac = 0.2
         self.num_classes = 10 if self.dataset == 'cifar10' else 100
         self.local_bs = 10
         self.local_ep = 10
         self.lr = 0.01  # learning rate
-        self.optimizer = 'sgd'
+        self.optimizer = 'adam'
         self.verbose = 1
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.trainmodel = ''
 
 
 args = Arg()
@@ -67,8 +47,11 @@ device = args.device
 print('deviece:', device)
 print('Dataset:', args.dataset)
 print('Num of classes:', args.num_classes)
-global_model = CNNCifar(args)
+# global_model = CNNCifar(args)
+# if args.trainmodel == 'cifar10':
+#     global_model = CNNCifar10(args)
 
+global_model = MyCNN(args)
 global_model.to(device)
 global_model.train()
 print(global_model)
@@ -130,3 +113,31 @@ print(f' \n Results after {args.epochs} global rounds of training:')
 print("|---- Avg Train Accuracy: {:.2f}%".format(100 * train_accuracy[-1]))
 print("|---- Test Accuracy: {:.2f}%".format(100 * test_acc))
 print('\n Total Run Time: {0:0.4f}'.format(time.time() - start_time))
+
+
+# PLOTTING (optional)
+import matplotlib
+import matplotlib.pyplot as plt
+matplotlib.use('Agg')
+
+ # Plot Loss curve
+plt.figure()
+plt.title('Training Loss vs Communication rounds')
+plt.plot(range(len(train_loss)), train_loss, color='r')
+plt.ylabel('Training loss')
+plt.xlabel('Communication Rounds')
+# plt.savefig('save/fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_loss.png'.
+#             format(args.dataset, args.model, args.epochs, args.frac,
+#                     args.iid, args.local_ep, args.local_bs))
+plt.show()
+
+# Plot Average Accuracy vs Communication rounds
+plt.figure()
+plt.title('Average Accuracy vs Communication rounds')
+plt.plot(range(len(train_accuracy)), train_accuracy, color='k')
+plt.ylabel('Average Accuracy')
+plt.xlabel('Communication Rounds')
+# plt.savefig('fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_acc.png'.
+#             format(args.dataset, args.model, args.epochs, args.frac,
+#                     args.iid, args.local_ep, args.local_bs))
+plt.show()
