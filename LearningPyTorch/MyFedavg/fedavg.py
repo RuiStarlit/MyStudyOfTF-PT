@@ -21,10 +21,10 @@ from models import MyCNN
 class Arg:
     def __init__(self):
         self.gpu = 0
-        self.num_users = 1000
-        self.dataset = 'cifar100'
+        self.num_users = 100
+        self.dataset = 'cifar10'
         self.epochs = 10
-        self.frac = 0.2
+        self.frac = 0.1
         self.num_classes = 10 if self.dataset == 'cifar10' else 100
         self.local_bs = 10
         self.local_ep = 10
