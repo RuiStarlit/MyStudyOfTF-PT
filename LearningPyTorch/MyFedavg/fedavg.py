@@ -15,7 +15,7 @@ from tqdm import tqdm
 import torch
 
 from utils import average_weights, LocalUpdate, get_dataset, test_inference
-from models import MyCNN
+from models import ResNet18, ResBlock
 
 
 class Arg:
@@ -27,12 +27,12 @@ class Arg:
         self.frac = 0.1
         self.num_classes = 10 if self.dataset == 'cifar10' else 100
         self.local_bs = 10
-        self.local_ep = 10
+        self.local_ep = 20
         self.lr = 0.01  # learning rate
-        self.optimizer = 'adam'
+        self.optimizer = 'sgd'
         self.verbose = 1
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.trainmodel = ''
+        self.trainmodel = 'ResNet18'
 
 
 args = Arg()
@@ -46,12 +46,12 @@ torch.cuda.set_device(0)
 device = args.device
 print('deviece:', device)
 print('Dataset:', args.dataset)
-print('Num of classes:', args.num_classes)
+print('Model:', args.trainmodel)
 # global_model = CNNCifar(args)
 # if args.trainmodel == 'cifar10':
 #     global_model = CNNCifar10(args)
 
-global_model = MyCNN(args)
+global_model = ResNet18(ResBlock, args)
 global_model.to(device)
 global_model.train()
 print(global_model)
@@ -101,7 +101,8 @@ for epoch in tqdm(range(args.epochs)):
     train_accuracy.append(sum(list_acc) / len(list_acc))
 
     # print global training loss after every 'i' rounds
-    if (epoch + 1) % print_every == 0:
+    # if (epoch + 1) % print_every == 0:
+    if 1 :
         print(f' \nAvg Training Stats after {epoch + 1} global rounds:')
         print(f'Training Loss : {np.mean(np.array(train_loss))}')
         print('Train Accuracy: {:.2f}% \n'.format(100 * train_accuracy[-1]))
@@ -117,8 +118,8 @@ print('\n Total Run Time: {0:0.4f}'.format(time.time() - start_time))
 
 # PLOTTING (optional)
 import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-matplotlib.use('Agg')
 
  # Plot Loss curve
 plt.figure()

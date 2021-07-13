@@ -11,7 +11,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
-from sampling import cifar10_noniid, DatasetSplit,cifar100_noniid
+from sampling import cifar10_noniid, DatasetSplit, cifar100_noniid
 
 
 def average_weights(w):
@@ -60,7 +60,6 @@ class LocalUpdate(object):
         model.train()
         epoch_loss = []
 
-
         # Set optimizer for the local updates
         if self.args.optimizer == 'sgd':
             optimizer = torch.optim.SGD(model.parameters(), lr=self.args.lr,
@@ -85,9 +84,9 @@ class LocalUpdate(object):
                     print('| Global Round : {} | Local Epoch : {} | [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                         global_round, iter, batch_idx * len(images),
                         len(self.trainloader.dataset),
-                        100. * batch_idx / len(self.trainloader), loss.item()))
+                                            100. * batch_idx / len(self.trainloader), loss.item()))
                 batch_loss.append(loss.item())
-            epoch_loss.append(sum(batch_loss)/len(batch_loss))
+            epoch_loss.append(sum(batch_loss) / len(batch_loss))
 
         return model.state_dict(), sum(epoch_loss) / len(epoch_loss)
 
@@ -112,7 +111,7 @@ class LocalUpdate(object):
             correct += torch.sum(torch.eq(pred_labels, labels)).item()
             total += len(labels)
 
-        accuracy = correct/total
+        accuracy = correct / total
         return accuracy, loss
 
 
@@ -120,8 +119,9 @@ def get_dataset(args):
     if args.dataset == 'cifar10':
         data_dir = '../data/cifar10/'
         apply_transform = transforms.Compose(
-            [transforms.ToTensor(),
-             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+            [
+             transforms.ToTensor(),
+             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), ])
         # ToTensor()能够把灰度范围从0-255变换到0-1之间，而后面的transform.Normalize()则把0-1变换到(-1,1)
 
         train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
@@ -134,18 +134,20 @@ def get_dataset(args):
     elif args.dataset == 'cifar100':
         data_dir = '../data/cifar100/'
         apply_transform = transforms.Compose(
-            [transforms.ToTensor(),
-             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+            [
+             transforms.ToTensor(),
+             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), ])
 
         train_dataset = datasets.CIFAR100(data_dir, train=True, download=True,
-                                         transform=apply_transform)
+                                          transform=apply_transform)
 
         test_dataset = datasets.CIFAR100(data_dir, train=False, download=True,
-                                        transform=apply_transform)
+                                         transform=apply_transform)
         user_groups = cifar100_noniid(train_dataset, args.num_users)
         return train_dataset, test_dataset, user_groups
     else:
         raise NotImplementedError()
+
 
 def test_inference(args, model, test_dataset):
     """ Returns the test accuracy and loss.
@@ -174,5 +176,5 @@ def test_inference(args, model, test_dataset):
         correct += torch.sum(torch.eq(pred_labels, labels)).item()
         total += len(labels)
 
-    accuracy = correct/total
+    accuracy = correct / total
     return accuracy, loss
