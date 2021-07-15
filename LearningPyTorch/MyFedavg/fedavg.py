@@ -22,17 +22,19 @@ class Arg:
     def __init__(self):
         self.gpu = 0
         self.num_users = 100
-        self.dataset = 'cifar10'
-        self.epochs = 10
-        self.frac = 0.1
+        self.dataset = 'cifar100'
+        self.epochs = 20
+        self.frac = 0.3
         self.num_classes = 10 if self.dataset == 'cifar10' else 100
-        self.local_bs = 10
-        self.local_ep = 20
+        self.local_bs = 100
+        self.local_ep = 10
         self.lr = 0.01  # learning rate
         self.optimizer = 'sgd'
         self.verbose = 1
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.trainmodel = 'ResNet18'
+        self.model = 'ResNet18'
+        self.n_shards = 100
+        self.n_imgs = 500
 
 
 args = Arg()
@@ -46,7 +48,8 @@ torch.cuda.set_device(0)
 device = args.device
 print('deviece:', device)
 print('Dataset:', args.dataset)
-print('Model:', args.trainmodel)
+print('Model:', args.model)
+print('The Sampling is n_shards=', args.n_shards,'n_imgs=',args.n_imgs)
 # global_model = CNNCifar(args)
 # if args.trainmodel == 'cifar10':
 #     global_model = CNNCifar10(args)
@@ -59,7 +62,7 @@ global_weights = global_model.state_dict()
 train_dataset, test_dataset, user_groups = get_dataset(args)
 
 # Training
-train_loss, train_accuracy = [], []
+train_loss, train_accuracy, test_accuracy = [], [],[]
 val_acc_list, net_list = [], []
 cv_loss, cv_acc = [], []
 print_every = 2
@@ -102,11 +105,13 @@ for epoch in tqdm(range(args.epochs)):
 
     # print global training loss after every 'i' rounds
     # if (epoch + 1) % print_every == 0:
-    if 1 :
+    if 1:
         print(f' \nAvg Training Stats after {epoch + 1} global rounds:')
         print(f'Training Loss : {np.mean(np.array(train_loss))}')
         print('Train Accuracy: {:.2f}% \n'.format(100 * train_accuracy[-1]))
-
+    test_acc, test_loss = test_inference(args, global_model, test_dataset)
+    test_accuracy.append(test_acc)
+    print("Test Accuracy: {:.2f}%".format(100 * test_acc))
 # Test inference after completion of training
 test_acc, test_loss = test_inference(args, global_model, test_dataset)
 
@@ -118,7 +123,7 @@ print('\n Total Run Time: {0:0.4f}'.format(time.time() - start_time))
 
 # PLOTTING (optional)
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
  # Plot Loss curve
@@ -127,10 +132,9 @@ plt.title('Training Loss vs Communication rounds')
 plt.plot(range(len(train_loss)), train_loss, color='r')
 plt.ylabel('Training loss')
 plt.xlabel('Communication Rounds')
-# plt.savefig('save/fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_loss.png'.
-#             format(args.dataset, args.model, args.epochs, args.frac,
-#                     args.iid, args.local_ep, args.local_bs))
-plt.show()
+plt.savefig('fed_{}_{}_{}_C[{}]_E[{}]_B[{}]_loss.png'.
+            format(args.dataset, args.model, args.epochs, args.frac,
+                     args.local_ep, args.local_bs))
 
 # Plot Average Accuracy vs Communication rounds
 plt.figure()
@@ -138,7 +142,15 @@ plt.title('Average Accuracy vs Communication rounds')
 plt.plot(range(len(train_accuracy)), train_accuracy, color='k')
 plt.ylabel('Average Accuracy')
 plt.xlabel('Communication Rounds')
-# plt.savefig('fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_acc.png'.
-#             format(args.dataset, args.model, args.epochs, args.frac,
-#                     args.iid, args.local_ep, args.local_bs))
-plt.show()
+plt.savefig('fed_{}_{}_{}_C[{}]_E[{}]_B[{}]_NSHARDS[{}]_avg_acc.png'.
+            format(args.dataset, args.model, args.epochs, args.frac,
+                     args.local_ep, args.local_bs, args.n_shards))
+plt.figure()
+plt.title('Test Accuracy vs Communication rounds')
+plt.plot(range(len(test_accuracy)), test_accuracy, color='k')
+plt.ylabel('Test Accuracy')
+plt.xlabel('Communication Rounds')
+plt.savefig('fed_{}_{}_{}_C[{}]_E[{}]_B[{}]_NSHARDS[{}]_test_acc.png'.
+            format(args.dataset, args.model, args.epochs, args.frac,
+                     args.local_ep, args.local_bs, args.n_shards))
+

@@ -167,7 +167,7 @@ def show_acc_curv(ratio):
     test_x = train_x[ratio - 1::ratio]
     test_y = global_test_acc
 
-    plt.title('CIFAR10 RESNET34 ACC')
+    plt.title('CIFAR10 RESNET18 ACC')
 
     plt.plot(train_x, train_y, color='green', label='training accuracy')
     plt.plot(test_x, test_y, color='red', label='testing accuracy')
@@ -236,7 +236,7 @@ def main():
     end_time = datetime.datetime.now()
 
     global best_acc
-    print('CIFAR10 pytorch ResNet34 Train: EPOCH:{}, BATCH_SZ:{}, LR:{}, ACC:{}'.format(args.epochs, args.batch_size,
+    print('CIFAR10 pytorch ResNet18 Train: EPOCH:{}, BATCH_SZ:{}, LR:{}, ACC:{}'.format(args.epochs, args.batch_size,
                                                                                         args.lr, best_acc))
     print('train spend time: ', end_time - start_time)
 

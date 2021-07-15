@@ -29,7 +29,7 @@ class DatasetSplit(Dataset):
         return torch.tensor(image), torch.tensor(label)
 
 
-def cifar10_noniid(dataset, n_users):
+def cifar10_noniid(dataset, args):
     """
     Sample Non-I.I.D data from CIFAR-10
     :param dataset:
@@ -37,7 +37,9 @@ def cifar10_noniid(dataset, n_users):
     :return: a dict of clients with each clients assigned certain
     number of training imgs
     """
-    n_shards, n_imgs = 200, 250  # 200碎片，一个碎片250图像
+    n_users = args.num_users
+    # n_shards, n_imgs = 200, 250  # 200碎片，一个碎片250图像
+    n_shards, n_imgs = args.n_shards, args.n_imgs
     idx_shard = [i for i in range(n_shards)]
     dict_users = {i: np.array([]) for i in range(n_users)}
     idxs = np.arange(n_shards * n_imgs)
@@ -56,7 +58,7 @@ def cifar10_noniid(dataset, n_users):
                 (dict_users[i], idxs[rand * n_imgs:(rand + 1) * n_imgs]), axis=0)
     return dict_users
 
-def cifar100_noniid(dataset, n_users):
+def cifar100_noniid(dataset, args):
     """
     Sample Non-I.I.D data from CIFAR-100
     :param dataset:
@@ -64,7 +66,9 @@ def cifar100_noniid(dataset, n_users):
     :return: a dict of clients with each clients assigned certain
     number of training imgs
     """
-    n_shards, n_imgs = 100, 500
+    n_users = args.num_users
+    # n_shards, n_imgs = 200, 250  # 200碎片，一个碎片250图像
+    n_shards, n_imgs = args.n_shards, args.n_imgs
     idx_shard = [i for i in range(n_shards)]
     dict_users = {i: np.array([]) for i in range(n_users)}
     idxs = np.arange(n_shards * n_imgs)

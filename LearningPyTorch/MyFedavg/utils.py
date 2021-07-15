@@ -35,7 +35,8 @@ class LocalUpdate(object):
         self.device = args.device
         # self.device = "cuda" if torch.cuda.is_available() else "cpu"
         # Default criterion set to NLL loss function
-        self.criterion = nn.NLLLoss().to(self.device)
+        # self.criterion = nn.NLLLoss().to(self.device)
+        self.criterion = nn.CrossEntropyLoss().to(self.device)
 
     def train_val_test(self, dataset, idxs):
         """
@@ -106,9 +107,10 @@ class LocalUpdate(object):
             loss += batch_loss.item()
 
             # Prediction
-            _, pred_labels = torch.max(outputs, 1)
-            pred_labels = pred_labels.view(-1)
-            correct += torch.sum(torch.eq(pred_labels, labels)).item()
+            # _, pred_labels = torch.max(outputs, 1)
+            # pred_labels = pred_labels.view(-1)
+            # correct += torch.sum(torch.eq(pred_labels, labels)).item()
+            correct += (outputs.argmax(1) == labels).type(torch.float).sum().item()
             total += len(labels)
 
         accuracy = correct / total
@@ -129,7 +131,7 @@ def get_dataset(args):
 
         test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
                                         transform=apply_transform)
-        user_groups = cifar10_noniid(train_dataset, args.num_users)
+        user_groups = cifar10_noniid(train_dataset, args)
         return train_dataset, test_dataset, user_groups
     elif args.dataset == 'cifar100':
         data_dir = '../data/cifar100/'
@@ -143,7 +145,7 @@ def get_dataset(args):
 
         test_dataset = datasets.CIFAR100(data_dir, train=False, download=True,
                                          transform=apply_transform)
-        user_groups = cifar100_noniid(train_dataset, args.num_users)
+        user_groups = cifar100_noniid(train_dataset, args)
         return train_dataset, test_dataset, user_groups
     else:
         raise NotImplementedError()
