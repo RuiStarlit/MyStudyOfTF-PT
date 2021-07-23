@@ -1,0 +1,70 @@
+DATASETS: mnist_noiid. Frac:0.2 
+Results after 5 global rounds of training:
+Test Accuracy: 54.99%
+Results after 10 global rounds of training:
+Test Accuracy: 78.41%
+Results after 15 global rounds of training:
+Test Accuracy: 83.07%
+Results after 20 global rounds of training:
+Test Accuracy: 87.03%
+Results after 25 global rounds of training:
+Test Accuracy: 85.07%
+Results after 30 global rounds of training:
+Test Accuracy: 89.42%
+
+DATASETS: mnist_noiid. Frac:0.4 
+Results after 5 global rounds of training:
+Test Accuracy: 64.56%
+Results after 10 global rounds of training:
+Test Accuracy: 82.30%
+Results after 15 global rounds of training:
+Test Accuracy: 86.73%
+Results after 20 global rounds of training:
+Test Accuracy: 87.75%
+Results after 25 global rounds of training:
+Test Accuracy: 90.79%
+Results after 30 global rounds of training:
+Test Accuracy: 91.41%
+
+DATASETS: mnist_noiid. Frac:0.6 
+Results after 5 global rounds of training:
+Test Accuracy: 67.42%
+Results after 10 global rounds of training:
+Test Accuracy: 75.25%
+Results after 15 global rounds of training:
+Test Accuracy: 81.58%
+Results after 20 global rounds of training:
+Test Accuracy: 85.95%
+Results after 25 global rounds of training:
+Test Accuracy: 88.42%
+Results after 30 global rounds of training:
+Test Accuracy: 88.50%
+
+DATASETS: mnist_noiid. Frac:0.8 
+Results after 5 global rounds of training:
+Test Accuracy: 74.16%
+Results after 10 global rounds of training:
+Test Accuracy: 82.26%
+Results after 15 global rounds of training:
+Test Accuracy: 86.72%
+Results after 20 global rounds of training:
+Test Accuracy: 89.70%
+Results after 25 global rounds of training:
+Test Accuracy: 90.29%
+Results after 30 global rounds of training:
+Test Accuracy: 91.05%
+
+DATASETS: mnist_noiid. Frac:1 
+Results after 5 global rounds of training:
+Test Accuracy: 72.31%
+Results after 10 global rounds of training:
+Test Accuracy: 82.46%
+Results after 15 global rounds of training:
+Test Accuracy: 86.20%
+Results after 20 global rounds of training:
+Test Accuracy: 88.58%
+Results after 25 global rounds of training:
+Test Accuracy: 89.82%
+Results after 30 global rounds of training:
+Test Accuracy: 90.67%
+

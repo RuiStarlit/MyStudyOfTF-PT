@@ -1,0 +1,28 @@
+DATASETS: mnist_iid. Frac:0.2 
+Results after 5 global rounds of training:
+Test Accuracy: 86.60%
+Results after 10 global rounds of training:
+Test Accuracy: 91.80%
+Results after 15 global rounds of training:
+Test Accuracy: 93.66%
+Results after 20 global rounds of training:
+Test Accuracy: 94.72%
+Results after 25 global rounds of training:
+Test Accuracy: 95.20%
+Results after 30 global rounds of training:
+Test Accuracy: 95.79%
+
+DATASETS: mnist_iid. Frac:0.4 
+Results after 5 global rounds of training:
+Test Accuracy: 87.66%
+Results after 10 global rounds of training:
+Test Accuracy: 92.54%
+Results after 15 global rounds of training:
+Test Accuracy: 94.26%
+Results after 20 global rounds of training:
+Test Accuracy: 94.98%
+Results after 25 global rounds of training:
+Test Accuracy: 95.51%
+Results after 30 global rounds of training:
+Test Accuracy: 95.90%
+
