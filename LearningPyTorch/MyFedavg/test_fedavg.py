@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 """
 Author: RuiStarlit
-File: test_fedavg
-Project: LearningPyTorch
-Create Time: 2021-07-13
+File: fedavg_3
+Project: Fedavg
+Create Time: 2021-07-21
 
 """
 import os
@@ -15,45 +15,50 @@ from tqdm import tqdm
 import torch
 
 from utils import average_weights, LocalUpdate, get_dataset, test_inference
-from models import ResNet18, ResBlock
+from models import ResNet18, ResBlock, CNNMnist
 
 
 class Arg:
-    def __init__(self, local_bs = 10, local_ep = 10, n_shards = 200):
-        self.gpu = 1
+    def __init__(self, frac=0.1, dataset='mnist_idd'):
+        self.gpu = 0
         self.num_users = 100
-        self.dataset = 'cifar10'
-        self.epochs = 10
-        self.frac = 0.1
-        self.num_classes = 10 if self.dataset == 'cifar10' else 100
-        self.local_bs = local_bs
-        self.local_ep = local_ep
+        self.dataset = dataset
+        self.epochs = 1
+        self.frac = frac
+        self.num_classes = 100 if self.dataset == 'cifar100' or self.dataset == 'cifar100iid' else 10
+        # self.num_classes = 10
+        self.local_bs = 50
+        self.local_ep = 5
         self.lr = 0.01  # learning rate
         self.optimizer = 'sgd'
         self.verbose = 1
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = 'ResNet18'
-        self.n_shards = n_shards
-        self.n_imgs = int(50000 / n_shards)
+        self.n_shards = 200
+        self.n_imgs = 300
 
 
-def main(args):
+def fedavg_main(args):
     # __main__
     start_time = time.time()
     # using CPU
-    torch.cuda.set_device(0)
+    # torch.cuda.set_device(0)
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # device = 'cpu'
     device = args.device
     print('deviece:', device)
     print('Dataset:', args.dataset)
-    print('Model:', args.model)
+    # print('Model:', args.model)
     print('The Sampling is n_shards=', args.n_shards, 'n_imgs=', args.n_imgs)
     # global_model = CNNCifar(args)
     # if args.trainmodel == 'cifar10':
     #     global_model = CNNCifar10(args)
 
-    global_model = ResNet18(ResBlock, args)
+    # global_model = ResNet18(ResBlock, args)
+    if args.dataset == 'mnist_iid' or args.dataset == 'mnist_noiid':
+        global_model = CNNMnist(args)
+    else:
+        global_model = ResNet18(ResBlock, args)
     global_model.to(device)
     global_model.train()
     print(global_model)
@@ -101,6 +106,8 @@ def main(args):
             list_acc.append(acc)
             list_loss.append(loss)
         train_accuracy.append(sum(list_acc) / len(list_acc))
+        if hasattr(torch.cuda, 'empty_cache'):
+            torch.cuda.empty_cache()
 
         # print global training loss after every 'i' rounds
         # if (epoch + 1) % print_every == 0:
@@ -111,6 +118,7 @@ def main(args):
         test_acc, test_loss = test_inference(args, global_model, test_dataset)
         test_accuracy.append(test_acc)
         print("Test Accuracy: {:.2f}%".format(100 * test_acc))
+
     # Test inference after completion of training
     test_acc, test_loss = test_inference(args, global_model, test_dataset)
 
@@ -121,6 +129,7 @@ def main(args):
 
     # PLOTTING (optional)
     import matplotlib
+
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
@@ -130,8 +139,8 @@ def main(args):
     plt.plot(range(len(train_loss)), train_loss, color='r')
     plt.ylabel('Training loss')
     plt.xlabel('Communication Rounds')
-    plt.savefig('fed_{}_{}_{}_C[{}]_E[{}]_B[{}]_loss.png'.
-                format(args.dataset, args.model, args.epochs, args.frac,
+    plt.savefig('fed_{}_{}_C[{}]_E[{}]_B[{}]_loss.png'.
+                format(args.dataset, args.epochs, args.frac,
                        args.local_ep, args.local_bs))
 
     # Plot Average Accuracy vs Communication rounds
@@ -140,22 +149,30 @@ def main(args):
     plt.plot(range(len(train_accuracy)), train_accuracy, color='k')
     plt.ylabel('Average Accuracy')
     plt.xlabel('Communication Rounds')
-    plt.savefig('fed_{}_{}_{}_C[{}]_E[{}]_B[{}]_NSHARDS[{}]_avg_acc.png'.
-                format(args.dataset, args.model, args.epochs, args.frac,
+    plt.savefig('fed_{}_{}_C[{}]_E[{}]_B[{}]_NSHARDS[{}]_avg_acc.png'.
+                format(args.dataset, args.epochs, args.frac,
                        args.local_ep, args.local_bs, args.n_shards))
     plt.figure()
     plt.title('Test Accuracy vs Communication rounds')
     plt.plot(range(len(test_accuracy)), test_accuracy, color='k')
     plt.ylabel('Test Accuracy')
     plt.xlabel('Communication Rounds')
-    plt.savefig('fed_{}_{}_{}_C[{}]_E[{}]_B[{}]_NSHARDS[{}]_test_acc.png'.
-                format(args.dataset, args.model, args.epochs, args.frac,
+    plt.savefig('fed_{}_{}_C[{}]_E[{}]_B[{}]_NSHARDS[{}]_test_acc.png'.
+                format(args.dataset, args.epochs, args.frac,
                        args.local_ep, args.local_bs, args.n_shards))
+    today = time.strftime("%m.%d", time.localtime())
+    f = open('fed_{}_{}_log.txt'.
+             format(args.dataset, today), 'a+')
+    f.write('DATASETS: {}. Frac:{} '.format(args.dataset, args.frac) + '\n')
+    for iepoch in[5, 10, 15, 20, 25, args.epochs]:
+        f.write('Results after {} global rounds of training:'.format(ipeoch) + '\n')
+        f.write("Test Accuracy: {:.2f}%".format(100 * test_accuracy[iepoch-1]) + '\n')
+    f.write('\n')
+    f.close()
 
 
-for le in [10, 20, 30, 35, 40]:
-    for lb in [10, 20, 50, 100]:
-        for ns in [100, 200, 250, 400]:
-            args = Arg(local_ep=le, local_bs=lb, n_shards=ns)
-            print("参数le，lb，ns分别为", le, lb, ns)
-            main(args)
+for idataset in ['mnist_iid', 'mnist_noiid']:
+    for ifrac in [0.2, 0.4, 0.6, 0.8, 1]:
+        args = Arg(frac=ifrac, dataset=idataset)
+        fedavg_main(args)
+print('ALL DONE')

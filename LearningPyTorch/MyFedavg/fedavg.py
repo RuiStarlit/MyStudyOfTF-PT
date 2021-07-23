@@ -15,26 +15,27 @@ from tqdm import tqdm
 import torch
 
 from utils import average_weights, LocalUpdate, get_dataset, test_inference
-from models import ResNet18, ResBlock
+from models import ResNet18, ResBlock, CNNMnist
 
 
 class Arg:
     def __init__(self):
         self.gpu = 0
         self.num_users = 100
-        self.dataset = 'cifar100'
-        self.epochs = 20
-        self.frac = 0.3
-        self.num_classes = 10 if self.dataset == 'cifar10' else 100
-        self.local_bs = 100
-        self.local_ep = 10
+        self.dataset = 'mnist_iid'
+        self.epochs = 100
+        self.frac = 0.2
+        self.num_classes = 100 if self.dataset == 'cifar100' or self.dataset =='cifar100iid' else 10
+        # self.num_classes = 10
+        self.local_bs = 50
+        self.local_ep = 5
         self.lr = 0.01  # learning rate
         self.optimizer = 'sgd'
         self.verbose = 1
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = 'ResNet18'
-        self.n_shards = 100
-        self.n_imgs = 500
+        self.n_shards = 200
+        self.n_imgs = 300
 
 
 args = Arg()
@@ -42,7 +43,7 @@ args = Arg()
 # __main__
 start_time = time.time()
 # using CPU
-torch.cuda.set_device(0)
+# torch.cuda.set_device(0)
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # device = 'cpu'
 device = args.device
@@ -54,7 +55,10 @@ print('The Sampling is n_shards=', args.n_shards,'n_imgs=',args.n_imgs)
 # if args.trainmodel == 'cifar10':
 #     global_model = CNNCifar10(args)
 
-global_model = ResNet18(ResBlock, args)
+if args.dataset == 'mnist_iid' or args.dataset == 'mnist_noiid':
+    global_model = CNNMnist(args)
+else:
+    global_model = ResNet18(ResBlock, args)
 global_model.to(device)
 global_model.train()
 print(global_model)
@@ -102,6 +106,8 @@ for epoch in tqdm(range(args.epochs)):
         list_acc.append(acc)
         list_loss.append(loss)
     train_accuracy.append(sum(list_acc) / len(list_acc))
+    if hasattr(torch.cuda, 'empty_cache'):
+        torch.cuda.empty_cache()
 
     # print global training loss after every 'i' rounds
     # if (epoch + 1) % print_every == 0:
@@ -112,6 +118,7 @@ for epoch in tqdm(range(args.epochs)):
     test_acc, test_loss = test_inference(args, global_model, test_dataset)
     test_accuracy.append(test_acc)
     print("Test Accuracy: {:.2f}%".format(100 * test_acc))
+
 # Test inference after completion of training
 test_acc, test_loss = test_inference(args, global_model, test_dataset)
 

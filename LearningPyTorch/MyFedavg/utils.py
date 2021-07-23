@@ -11,7 +11,8 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
-from sampling import cifar10_noniid, DatasetSplit, cifar100_noniid
+from sampling import cifar10_noniid, DatasetSplit, cifar100_noniid, cifar10_iid
+from sampling import mnist_iid, mnist_noiid
 
 
 def average_weights(w):
@@ -88,6 +89,8 @@ class LocalUpdate(object):
                                             100. * batch_idx / len(self.trainloader), loss.item()))
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss) / len(batch_loss))
+            if hasattr(torch.cuda, 'empty_cache'):
+                torch.cuda.empty_cache()
 
         return model.state_dict(), sum(epoch_loss) / len(epoch_loss)
 
@@ -102,7 +105,8 @@ class LocalUpdate(object):
             images, labels = images.to(self.device), labels.to(self.device)
 
             # Inference
-            outputs = model(images)
+            with torch.no_grad():
+                outputs = model(images)
             batch_loss = self.criterion(outputs, labels)
             loss += batch_loss.item()
 
@@ -147,6 +151,59 @@ def get_dataset(args):
                                          transform=apply_transform)
         user_groups = cifar100_noniid(train_dataset, args)
         return train_dataset, test_dataset, user_groups
+    elif args.dataset == 'cifar10iid':
+        data_dir = '../data/cifar10/'
+        apply_transform = transforms.Compose(
+            [
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), ])
+
+        train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
+                                         transform=apply_transform)
+
+        test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
+                                        transform=apply_transform)
+
+        # sample training data amongst users
+            # Sample IID user data from Mnist
+        user_groups = cifar10_iid(train_dataset, args.num_users)
+        return train_dataset, test_dataset, user_groups
+    elif args.dataset == 'cifar100iid':
+        data_dir = '../data/cifar100/'
+        apply_transform = transforms.Compose(
+            [
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), ])
+
+        train_dataset = datasets.CIFAR100(data_dir, train=True, download=True,
+                                         transform=apply_transform)
+
+        test_dataset = datasets.CIFAR100(data_dir, train=False, download=True,
+                                        transform=apply_transform)
+
+        # sample training data amongst users
+            # Sample IID user data from Mnist
+        user_groups = cifar10_iid(train_dataset, args.num_users)
+        return train_dataset, test_dataset, user_groups
+    elif args.dataset == 'mnist_iid' or args.dataset == 'mnist_noiid':
+        data_dir = '../data/mnist/'
+        apply_transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))])
+
+        train_dataset = datasets.MNIST(data_dir, train=True, download=True,
+                                       transform=apply_transform)
+
+        test_dataset = datasets.MNIST(data_dir, train=False, download=True,
+                                      transform=apply_transform)
+        if args.dataset == 'mnist_iid':
+            user_groups = mnist_iid(train_dataset, args.num_users)
+        elif args.dataset == 'mnist_noiid':
+            user_groups = mnist_noiid(train_dataset, args)
+        else:
+            raise NotImplementedError()
+        return train_dataset, test_dataset, user_groups
+
     else:
         raise NotImplementedError()
 
@@ -168,7 +225,8 @@ def test_inference(args, model, test_dataset):
         images, labels = images.to(device), labels.to(device)
 
         # Inference
-        outputs = model(images)
+        with torch.no_grad():
+            outputs = model(images)
         batch_loss = criterion(outputs, labels)
         loss += batch_loss.item()
 
