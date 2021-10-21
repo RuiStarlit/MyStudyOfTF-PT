@@ -1,0 +1,12 @@
+pandas
+joblib
+scikit-learn
+fastparquet
+sklearn
+matplotlib
+seaborn
+lightgbm
+tdqm
+ipywidgets
+tsfresh
+librosa
