@@ -1,3 +1,2 @@
-# MyStudyOfTensorflow
-My study of Tensorflow  
-Tensorflow的入门学习
+# Somecode
+ Just somecode on my daily life。
