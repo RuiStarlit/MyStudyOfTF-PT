@@ -1,0 +1,11 @@
+Min val_loss is:0.22423927539161273 at 93 epoch 
+The Hyperparameter:
+    enc_seq_len = 6
+    dec_seq_len =2
+    dim_val = 10
+    dim_attn = 10
+    lr = 0.003
+    n_heads = 2
+    n_encoder_layers = 2
+    n_decoder_layers = 2
+      

@@ -1,0 +1,5 @@
+Min val_loss is:0.22466988178590933 at 33 epoch 
+The Hyperparameter:
+    d_model = 20 d_ff = 20
+    n_heads = 2 Batch_size = 256 lr = 0.001
+      
