@@ -1,0 +1,42 @@
+The Hyperparameter:
+        d_model = 16 d_ff = 8
+        n_heads = 2 Batch_size = 512 lr = 0.001
+        label_len = 10 dropout = 0.1
+        e_layers = 3  d_layers = 2
+          Epoch:  1 |Train_Loss:1.381232 |R2:0.121780|Val_Loss:1.022359 |R2:0.235658 |Rate:0.663|lr:0.001000
+Epoch:  2 |Train_Loss:1.250317 |R2:0.236426|Val_Loss:0.975054 |R2:0.298451 |Rate:0.677|lr:0.001000
+Epoch:  3 |Train_Loss:1.210814 |R2:0.270477|Val_Loss:0.964528 |R2:0.311080 |Rate:0.680|lr:0.001000
+Epoch:  4 |Train_Loss:1.196977 |R2:0.283828|Val_Loss:0.958333 |R2:0.319843 |Rate:0.682|lr:0.001000
+Epoch:  5 |Train_Loss:1.187857 |R2:0.292234|Val_Loss:0.954503 |R2:0.324754 |Rate:0.683|lr:0.001000
+Epoch:  6 |Train_Loss:1.181800 |R2:0.297525|Val_Loss:0.952125 |R2:0.327867 |Rate:0.684|lr:0.001000
+Epoch:  7 |Train_Loss:1.177783 |R2:0.300875|Val_Loss:0.950577 |R2:0.329958 |Rate:0.684|lr:0.001000
+Epoch:  8 |Train_Loss:1.175134 |R2:0.302997|Val_Loss:0.949683 |R2:0.331136 |Rate:0.684|lr:0.001000
+Epoch:  9 |Train_Loss:1.173356 |R2:0.304409|Val_Loss:0.949078 |R2:0.331929 |Rate:0.685|lr:0.001000
+Epoch: 10 |Train_Loss:1.172118 |R2:0.305421|Val_Loss:0.948603 |R2:0.332631 |Rate:0.685|lr:0.001000
+Epoch: 11 |Train_Loss:1.171179 |R2:0.306201|Val_Loss:0.948180 |R2:0.333504 |Rate:0.685|lr:0.001000
+Epoch: 12 |Train_Loss:1.170461 |R2:0.306821|Val_Loss:0.947830 |R2:0.334339 |Rate:0.685|lr:0.001000
+Epoch: 13 |Train_Loss:1.169828 |R2:0.307413|Val_Loss:0.947464 |R2:0.335254 |Rate:0.685|lr:0.001000
+Epoch: 14 |Train_Loss:1.169299 |R2:0.307912|Val_Loss:0.947129 |R2:0.336196 |Rate:0.685|lr:0.001000
+Epoch: 15 |Train_Loss:1.168808 |R2:0.308378|Val_Loss:0.946834 |R2:0.336878 |Rate:0.685|lr:0.001000
+Epoch: 16 |Train_Loss:1.168405 |R2:0.308764|Val_Loss:0.946544 |R2:0.337416 |Rate:0.685|lr:0.001000
+Epoch: 17 |Train_Loss:1.168018 |R2:0.309113|Val_Loss:0.946286 |R2:0.337893 |Rate:0.686|lr:0.001000
+Epoch: 18 |Train_Loss:1.167662 |R2:0.309448|Val_Loss:0.946042 |R2:0.338153 |Rate:0.686|lr:0.001000
+Epoch: 19 |Train_Loss:1.167326 |R2:0.309740|Val_Loss:0.945837 |R2:0.338325 |Rate:0.686|lr:0.001000
+Epoch: 20 |Train_Loss:1.167016 |R2:0.310029|Val_Loss:0.945645 |R2:0.338467 |Rate:0.686|lr:0.001000
+Epoch: 21 |Train_Loss:1.166717 |R2:0.310299|Val_Loss:0.945469 |R2:0.338608 |Rate:0.686|lr:0.001000
+Epoch: 22 |Train_Loss:1.166446 |R2:0.310535|Val_Loss:0.945284 |R2:0.338815 |Rate:0.686|lr:0.001000
+Epoch: 23 |Train_Loss:1.166190 |R2:0.310754|Val_Loss:0.945144 |R2:0.338933 |Rate:0.686|lr:0.001000
+Epoch: 24 |Train_Loss:1.165959 |R2:0.310942|Val_Loss:0.944997 |R2:0.339064 |Rate:0.686|lr:0.001000
+Epoch: 25 |Train_Loss:1.165746 |R2:0.311100|Val_Loss:0.944858 |R2:0.339144 |Rate:0.686|lr:0.001000
+Epoch: 26 |Train_Loss:1.165545 |R2:0.311243|Val_Loss:0.944733 |R2:0.339273 |Rate:0.686|lr:0.001000
+Epoch: 27 |Train_Loss:1.165356 |R2:0.311370|Val_Loss:0.944627 |R2:0.339318 |Rate:0.686|lr:0.001000
+Epoch: 28 |Train_Loss:1.165166 |R2:0.311499|Val_Loss:0.944540 |R2:0.339292 |Rate:0.686|lr:0.001000
+Epoch: 29 |Train_Loss:1.164981 |R2:0.311624|Val_Loss:0.944460 |R2:0.339343 |Rate:0.686|lr:0.001000
+Epoch: 30 |Train_Loss:1.164806 |R2:0.311730|Val_Loss:0.944387 |R2:0.339368 |Rate:0.686|lr:0.001000
+Epoch: 31 |Train_Loss:1.164625 |R2:0.311842|Val_Loss:0.944318 |R2:0.339413 |Rate:0.686|lr:0.001000
+Epoch: 32 |Train_Loss:1.164451 |R2:0.311944|Val_Loss:0.944234 |R2:0.339414 |Rate:0.686|lr:0.001000
+Epoch: 33 |Train_Loss:1.164276 |R2:0.312045|Val_Loss:0.944166 |R2:0.339449 |Rate:0.686|lr:0.001000
+Epoch: 34 |Train_Loss:1.164101 |R2:0.312144|Val_Loss:0.944091 |R2:0.339448 |Rate:0.686|lr:0.001000
+Epoch: 35 |Train_Loss:1.163930 |R2:0.312244|Val_Loss:0.944028 |R2:0.339487 |Rate:0.687|lr:0.001000
+Epoch: 36 |Train_Loss:1.163755 |R2:0.312345|Val_Loss:0.943950 |R2:0.339482 |Rate:0.687|lr:0.001000
+Epoch: 37 |Train_Loss:1.163579 |R2:0.312452|Val_Loss:0.943872 |R2:0.339520 |Rate:0.687|lr:0.001000

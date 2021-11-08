@@ -1,0 +1,7 @@
+The Hyperparameter:
+        d_model = 16 d_ff = 8
+        n_heads = 2 Batch_size = 512 lr = 0.001
+        label_len = 10 dropout = 0.1
+        e_layers = 3  d_layers = 2
+          Epoch:  1 |Train_Loss:1.175537 |R2:0.306275|Val_Loss:0.940363 |R2:0.340680 |Rate:0.688|lr:0.001000
+Epoch:  2 |Train_Loss:1.152557 |R2:0.324124|Val_Loss:0.936932 |R2:0.348183 |Rate:0.689|lr:0.001000
