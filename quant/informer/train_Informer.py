@@ -25,6 +25,7 @@ from tqdm.auto import tqdm
 # from utils import *
 from models import *
 from models.model import Informer, InformerStack
+from Mytools import EarlyStopping_R2
 
 import warnings
 
@@ -60,6 +61,8 @@ class Train_Informer_mul():
         self.device = device
         self.train_f = train_f
         self.test_f = test_f
+        self.print_r2 = False
+        self.epoch = 0
 
     def _build_model(self):
         model = Informer(enc_in=self.enc_in, dec_in=self.dec_in, c_out=self.c_out, out_len=self.out_len,
@@ -68,7 +71,7 @@ class Train_Informer_mul():
                          )
 
         model.to(self.device)
-        self.time = time.strftime("%m-%d-%H-%M", time.localtime())
+        self.time = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime("%m-%d_%H:%M")
         self.name = 'Informer-' + 'mutilstep-' + str(self.out_len) + 's' + self.time
         self.model = model
         print(self.model)
@@ -81,14 +84,15 @@ class Train_Informer_mul():
         else:
             raise NotImplementedError()
 
-    def _selct_scheduler(self, patience=8, factor=0.8):
+    def _selct_scheduler(self, patience=8, factor=0.8, min_lr=0.00001):
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'min',
-                                                                    patience=patience, factor=factor)
+                                                                    patience=patience, factor=factor, min_lr=min_lr)
     def _set_lr(self, lr):
         self.lr = lr
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
         print('Learning Rate is set to '+str(lr)+'\n')
+
 
     def _selct_criterion(self, criterion):
         self.criterion = criterion
@@ -110,6 +114,11 @@ class Train_Informer_mul():
         e_layers = {}  d_layers = {}
           """.format(self.d_model, self.d_ff, self.n_heads, self.Batch_size, self.lr, self.label_len,
                      self.dropout, self.e_layers, self.d_layers))
+        f.close()
+
+    def write_remarks(self, s):
+        f = open('log/{}.txt'.format(self.name), 'a+')
+        f.write(s+'\n')
         f.close()
 
     def write_log(self, train_loss, val_loss, train_r2, val_r2):
@@ -218,7 +227,6 @@ class Train_Informer_mul():
             val_loss = val_loss.mean()
             val_r2 = val_r2.mean()
             val_rate = val_rate.mean()
-            return val_loss, val_r2, val_rate
 
         else:
             t_val_loss = np.empty((len(self.test_f),))
@@ -256,31 +264,68 @@ class Train_Informer_mul():
             val_loss = t_val_loss.mean()
             val_r2 = t_val_r2.mean()
             val_rate = t_val_rate.mean()
+            if self.print_r2:
+                max_r2 = np.argmax(t_val_r2)
+                print('The max r2 is test_f is' + str(t_val_r2[max_r2]) + ' at' + str(max_r2))
 
-            return val_loss, val_r2, val_rate, t_val_loss, t_val_r2, t_val_rate
+        return val_loss, val_r2, val_rate
 
-    def train(self, epochs=200, train_all=True, f=None, val_all=False, testfile=None, save='train'):
+    def warmup_train(self, warm_lr, warmup_step=5, train_all=False, f=None, val_all=True, testfile=None):
+        stored_lr = self.lr
+        delta_lr = stored_lr - warm_lr
+        self._set_lr(warm_lr)
+        train_loss = np.empty((warmup_step,))
+        train_r2 = np.empty((warmup_step,))
+        val_loss = np.empty((warmup_step,))
+        val_r2 = np.empty((warmup_step,))
+        val_rate = np.empty((warmup_step,))
+        for epoch in tqdm(range(warmup_step)):
+            self.epoch = epoch
+            loss, r2 = self.train_one_epoch(train_all, f)
+            train_loss[epoch] = loss
+            train_r2[epoch] = r2
+
+            loss, r2, rate = self.val(val_all, testfile)
+
+            val_loss[epoch] = loss
+            val_r2[epoch] = r2
+            val_rate[epoch] = rate
+            torch.save(self.model.state_dict(), 'checkpoint/' + self.name + '.pt')
+            print(
+                'Epoch:{:>3d} |Train_Loss:{:.6f} |R2:{:.6f}|Val_Loss:{:.6f} |R2:{:.6f} |Rate:{:.3f} |lr:{:.6f}'.format(
+                    epoch + 1,
+                    train_loss[epoch], train_r2[epoch], val_loss[epoch], val_r2[epoch], val_rate[epoch],
+                    self.optimizer.state_dict()['param_groups'][0]['lr']))
+            log = [epoch + 1, train_loss[epoch], train_r2[epoch], val_loss[epoch], val_r2[epoch],
+                   val_rate[epoch],
+                   self.optimizer.state_dict()['param_groups'][0]['lr']]
+            self.train_log(log)
+            self.lr += (1/warmup_step) * delta_lr
+            self._set_lr(self.lr)
+        self._set_lr(stored_lr)
+        print('Warm Up Done')
+
+
+    def train(self, epochs=200, train_all=True, f=None, val_all=False, testfile=None, save='train', patience=10):
         best_train_r2 = float('-inf')
         best_val_r2 = float('-inf')
         self.train_log_head()
+        early_stopping = EarlyStopping_R2(patience=patience, verbose=True)
 
         train_loss = np.empty((epochs,))
         train_r2 = np.empty((epochs,))
         val_loss = np.empty((epochs,))
         val_r2 = np.empty((epochs,))
         val_rate = np.empty((epochs,))
+        start_epoch = self.epoch
         for epoch in tqdm(range(epochs)):
+            self.epoch = epoch + start_epoch
             loss, r2 = self.train_one_epoch(train_all, f)
             train_loss[epoch] = loss
             train_r2[epoch] = r2
-            self.scheduler.step(loss)
+            # self.scheduler.step(loss)
 
-            if not val_all:
-                loss, r2, rate = self.val(val_all, testfile)
-            else:
-                loss, r2, rate, tloss, tr2, trate = self.val(val_all, testfile)
-                max_r2 = np.argmax(tr2)
-                print('The max r2 is test_f is' + str(tr2[max_r2]) + ' at' + str(max_r2))
+            loss, r2, rate = self.val(val_all, testfile)
 
             val_loss[epoch] = loss
             val_r2[epoch] = r2
@@ -307,14 +352,19 @@ class Train_Informer_mul():
 
             print(
                 'Epoch:{:>3d} |Train_Loss:{:.6f} |R2:{:.6f}|Val_Loss:{:.6f} |R2:{:.6f} |Rate:{:.3f} |lr:{:.6f}'.format(
-                    epoch + 1,
+                    start_epoch+epoch + 1,
                     train_loss[epoch], train_r2[epoch], val_loss[epoch], val_r2[epoch], val_rate[epoch],
                     self.optimizer.state_dict()['param_groups'][0]['lr']))
-            log = [epoch + 1, train_loss[epoch], train_r2[epoch], val_loss[epoch], val_r2[epoch],
+            log = [start_epoch+epoch + 1, train_loss[epoch], train_r2[epoch], val_loss[epoch], val_r2[epoch],
                    val_rate[epoch],
                    self.optimizer.state_dict()['param_groups'][0]['lr']]
             self.train_log(log)
             self.lr = self.optimizer.state_dict()['param_groups'][0]['lr']
+            path = 'checkpoint/' + self.name
+            early_stopping(val_r2[epoch], self.model, path)
+            if early_stopping.early_stop:
+                print("Early stopping")
+                break
 
         print("Done")
         self.write_log(train_loss, val_loss, train_r2, val_r2)
@@ -341,6 +391,44 @@ class Train_Informer_mul():
             y_list.append(Y[:, 0].detach().cpu().numpy())
 
         return r2, test_loss, pred_list, y_list
+
+    def test_all(self):
+        t_val_loss = np.empty((len(self.test_f),))
+        t_val_r2 = np.empty((len(self.test_f), 1))
+        t_val_rate = np.empty((len(self.test_f), 1))
+        conter = 0
+        for f in self.test_f:
+            print('predicting on' + f.split('/')[-1].split('.')[0])
+            dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
+                                pred_len=self.out_len, label_len=self.label_len)
+
+            val_loss = np.empty((len(dataset),))
+            val_r2 = np.empty((len(dataset),))
+            val_rate = np.empty((len(dataset),))
+
+            with torch.no_grad():
+                for i in range(len(dataset)):
+                    x, y = dataset(i)
+                    pred, Y = self.process_one_batch(x, y)
+                    loss = torch.mean((pred - Y) ** 2) + \
+                           F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
+                    val_loss[i] = loss.item()
+                    r2 = fr2(pred, y).cpu().detach().numpy()
+                    rate = frate(pred, y).detach().cpu().numpy()
+                    val_r2[i] = r2
+                    val_rate[i] = rate
+            val_loss = val_loss.mean()
+            val_r2 = val_r2.mean()
+            val_rate = val_rate.mean()
+            t_val_loss[conter] = val_loss
+            t_val_r2[conter] = val_r2
+            t_val_rate[conter] = val_rate
+            conter += 1
+            del (dataset)
+        val_loss = t_val_loss.mean()
+        val_r2 = t_val_r2.mean()
+        val_rate = t_val_rate.mean()
+        return val_loss, val_r2, val_rate, t_val_loss, t_val_r2, t_val_rate
 
     def load(self, path):
         self.model.load_state_dict(torch.load(path))
