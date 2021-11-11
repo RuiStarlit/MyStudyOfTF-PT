@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 """
 Writer: RuiStarlit
-File: train_RNN
+File: train_RNN_t
 Project: informer
-Create Time: 2021-11-03
+Create Time: 2021-11-09
 """
 
 import torch
@@ -21,10 +21,11 @@ import matplotlib.pyplot as plt
 
 from tqdm.auto import tqdm
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from utils import *
-from Mytools import EarlyStopping_R2
 # from Network import *
+from Mytools import EarlyStopping_R2
 
 import warnings
 
@@ -77,11 +78,16 @@ encode_time_ = np.frompyfunc(encode_time, 1, 1)
 categories = [np.array([0, 1, 2, 10, 11, 12, 20, 21, 22, 30, 31, 32, 40, 41, 42],
                        dtype=object)]
 
+is_scaler = False
+scalers = []
+
+
+
 
 class Train_RNN():
     def __init__(self, enc_in, dec_in, c_out, seq_len, out_len, d_model, d_ff, n_heads,
                  e_layers, d_layers, label_len,
-                 dropout, batch_size, lr, device, train_f, test_f):
+                 dropout, batch_size, val_batch, lr, device, train_f, test_f, scaler, decay):
         self.enc_in = enc_in
         self.dec_in = dec_in
         self.c_out = c_out
@@ -101,6 +107,11 @@ class Train_RNN():
         self.test_f = test_f
         self.print_r2 = False
         self.epoch = 0
+        self.val_batch = val_batch
+        self.scaler = scaler
+        self.boost_index = {}
+        self.clip_grad = True
+        self.decay = 3000
 
     def _build_model(self, opt='attn_rnn'):
         if opt == 'attn_rnn':
@@ -138,10 +149,14 @@ class Train_RNN():
         self.lr = lr
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
-        print('Learning Rate is set to ' + str(lr) + '\n')
+        print('Learning Rate is set to ' + str(lr))
 
     def _selct_criterion(self, criterion):
         self.criterion = criterion
+
+    def load(self, path):
+        self.model.load_state_dict(torch.load(path))
+        print("success")
 
     def train_log(self, log):
         f = open('log/{}.txt'.format(self.name), 'a+')
@@ -213,13 +228,16 @@ class Train_RNN():
             self.optimizer.zero_grad()
             pred = self.model(x, t)
 
-            loss = torch.mean((pred - y) ** 2) + \
-                   F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+            loss = torch.mean((pred - y) ** 2)
+                   # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
 
             train_loss[i] = loss.item()
             loss.backward()
-            # self.optimizer.step()
-            if i % 3000 == 0:
+            if self.clip_grad:
+                nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=20, norm_type=2)
+            self.optimizer.step()
+
+            if i % self.decay == 0:
                 self.scheduler.step(loss)
 
             r2 = fr2(pred, y).cpu().detach().numpy()
@@ -232,7 +250,7 @@ class Train_RNN():
     def train_one_epoch(self, train_all=True, f=None):
         if not train_all:
             self.dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
-                                     pred_len=self.out_len, label_len=self.label_len)
+                                     pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
             loss, r2 = self.single_train()
         else:
             loss = np.empty((len(self.train_f),))
@@ -240,7 +258,7 @@ class Train_RNN():
             conter = 0
             for f in self.train_f:
                 self.dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
-                                         pred_len=self.out_len, label_len=self.label_len)
+                                         pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
                 train_loss, tran_r2 = self.single_train()
                 loss[conter] = train_loss
                 r2[conter] = tran_r2
@@ -253,8 +271,8 @@ class Train_RNN():
     def val(self, val_all=False, f=None):
         self.model.eval()
         if not val_all:
-            dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
-                                pred_len=self.out_len, label_len=self.label_len)
+            dataset = MyDataset(file_name=f, batch_size=self.val_batch,
+                                pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
             val_loss = np.empty((len(dataset),))
             val_r2 = np.empty((len(dataset),))
             val_rate = np.empty((len(dataset),))
@@ -263,8 +281,8 @@ class Train_RNN():
                 for i in range(len(dataset)):
                     x, y, t = dataset(i)
                     pred = self.model(x, t)
-                    loss = torch.mean((pred - y) ** 2) + \
-                           F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+                    loss = torch.mean((pred - y) ** 2)
+                           # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
                     val_loss[conter] = loss.item()
                     r2 = fr2(pred, y).cpu().detach().numpy()
                     rate = frate(pred, y).detach().cpu().numpy()
@@ -280,8 +298,8 @@ class Train_RNN():
             t_val_rate = np.empty((len(self.test_f), 1))
             conter = 0
             for f in self.test_f:
-                dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
-                                    pred_len=self.out_len, label_len=self.label_len)
+                dataset = MyDataset(file_name=f, batch_size=self.val_batch,
+                                    pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
 
                 val_loss = np.empty((len(dataset),))
                 val_r2 = np.empty((len(dataset),))
@@ -291,8 +309,8 @@ class Train_RNN():
                     for i in range(len(dataset)):
                         x, y, t = dataset(i)
                         pred = self.model(x, t)
-                        loss = torch.mean((pred - y) ** 2) + \
-                               F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+                        loss = torch.mean((pred - y) ** 2)
+                               # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
                         val_loss[i] = loss.item()
                         r2 = fr2(pred, y).cpu().detach().numpy()
                         rate = frate(pred, y).detach().cpu().numpy()
@@ -315,8 +333,9 @@ class Train_RNN():
 
         return val_loss, val_r2, val_rate
 
-    def train(self, epochs=200, train_all=True, f=None, val_all=False, testfile=None, save='train', continued=0,
-              patience=10):
+    def train(self, epochs=200, train_all=True, f=None, val_all=False, testfile=None, save='train', continued=0, patience=15, boost=False):
+        if boost:
+            print('Training Mode: boost')
         best_train_r2 = float('-inf')
         best_val_r2 = float('-inf')
         self.train_log_head()
@@ -330,7 +349,10 @@ class Train_RNN():
         start_epoch = self.epoch + continued
         for epoch in tqdm(range(epochs)):
             self.epoch = start_epoch + epoch
-            loss, r2 = self.train_one_epoch(train_all, f)
+            if not boost:
+                loss, r2 = self.train_one_epoch(train_all, f)
+            else:
+                loss, r2 = self.boost_train_one_epoch(train_all, f)
             train_loss[epoch] = loss
             train_r2[epoch] = r2
             # self.scheduler.step(loss)
@@ -378,8 +400,50 @@ class Train_RNN():
         print("Done")
         self.write_log(train_loss, val_loss, train_r2, val_r2)
 
+    def boost(self, threshold):
+        for i in tqdm(range(len(self.train_f))):
+            f = self.train_f[i]
+            name = f.split('/')[-1]
+            dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
+                                     pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+            mse = []
+            with torch.no_grad():
+                for i in range(len(dataset)):
+                    x, y, t = dataset(i)
+                    pred = self.model(x, t)
+                    mse.append( (torch.abs(pred - y) ).detach().cpu().numpy() < threshold )
+
+            self.boost_index[name] = np.concatenate(mse)
+
+            print(f'Drop {(~self.boost_index[name]).sum()} ({(~self.boost_index[name]).sum() / dataset.n *100:.3f}%) data in {name}')
+
+    def boost_train_one_epoch(self, train_all=True, f=None):
+        if not train_all:
+            name = f.split('/')[-1]
+            # boost_index = self.boost_index[name]
+            self.dataset = MyDataset_b(file_name=f, batch_size=self.Batch_size, boost_index=self.boost_index[name],
+                                     pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+            loss, r2 = self.single_train()
+        else:
+            loss = np.empty((len(self.train_f),))
+            r2 = np.empty((len(self.train_f),))
+            conter = 0
+            for f in self.train_f:
+                name = f.split('/')[-1]
+                # boost_index = self.boost_index[name]
+                self.dataset = MyDataset_b(file_name=f, batch_size=self.Batch_size, boost_index=self.boost_index[name],
+                                         pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+                train_loss, tran_r2 = self.single_train()
+                loss[conter] = train_loss
+                r2[conter] = tran_r2
+                conter += 1
+                del (self.dataset)
+            loss = loss.mean()
+            r2 = r2.mean()
+        return loss, r2
+
     def test(self, ic_name):
-        dataset = MyDataset(ic_name, self.Batch_size, self.out_len, label_len=self.label_len)
+        dataset = MyDataset(ic_name, self.val_batch, self.out_len, label_len=self.label_len, scaler=self.scaler)
         r2 = np.empty((len(dataset),))
         test_loss = np.empty((len(dataset),))
         pred_list = []
@@ -390,8 +454,8 @@ class Train_RNN():
             x, y, t = dataset(i)
             with torch.no_grad():
                 pred = self.model(x, t)
-                loss = torch.mean((pred - y) ** 2) + \
-                       F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+                loss = torch.mean((pred - y) ** 2)
+                       # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
                 test_loss[i] = loss.item()
             r2_i = fr2(pred, y).cpu().detach().numpy()
             r2[i] = r2_i
@@ -401,14 +465,15 @@ class Train_RNN():
         return r2, test_loss, pred_list, y_list
 
     def test_all(self):
+        self.model.eval()
         t_val_loss = np.empty((len(self.test_f),))
         t_val_r2 = np.empty((len(self.test_f), 1))
         t_val_rate = np.empty((len(self.test_f), 1))
         conter = 0
         for f in self.test_f:
             print('predicting on' + f.split('/')[-1].split('.')[0])
-            dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
-                                pred_len=self.out_len, label_len=self.label_len)
+            dataset = MyDataset(file_name=f, batch_size=self.val_batch,
+                                pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
 
             val_loss = np.empty((len(dataset),))
             val_r2 = np.empty((len(dataset),))
@@ -418,8 +483,8 @@ class Train_RNN():
                 for i in range(len(dataset)):
                     x, y, t = dataset(i)
                     pred = self.model(x, t)
-                    loss = torch.mean((pred - y) ** 2) + \
-                           F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+                    loss = torch.mean((pred - y) ** 2)
+                           # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
                     val_loss[i] = loss.item()
                     r2 = fr2(pred, y).cpu().detach().numpy()
                     rate = frate(pred, y).detach().cpu().numpy()
@@ -438,15 +503,15 @@ class Train_RNN():
         val_rate = t_val_rate.mean()
         return val_loss, val_r2, val_rate, t_val_loss, t_val_r2, t_val_rate
 
-    def load(self, path):
-        self.model.load_state_dict(torch.load(path))
-        print("success")
 
 
 class MyDataset():
-    def __init__(self, file_name, batch_size, pred_len=3, enc_seq_len=20, label_len=1):
+    def __init__(self, file_name, batch_size, pred_len=3, enc_seq_len=20, label_len=1, scaler=False):
         self.name = file_name
-        self.__read_data__()
+        if not scaler:
+            self.__read_data__()
+        else:
+            self.__read_data_s()
         self.batch_size = batch_size
         self.n = self.y.shape[0]
         self.indexes = np.arange(self.n)
@@ -468,6 +533,99 @@ class MyDataset():
         codedtime = codedtime.reshape(len(codedtime), 1)
         onehot_encoder = OneHotEncoder(categories=categories, sparse=False)
         self.codedtime = onehot_encoder.fit_transform(codedtime)
+        f.close()
+
+    def __read_data_s(self):
+        global is_scaler, scalers
+        f = h5py.File(self.name, 'r')
+        self.x = np.empty(shape=f['x'][:].shape, dtype=np.float32)
+        if is_scaler:
+            for i in range(15):
+                self.x[:, :, i] = scalers[i].transform(f['x'][:, :, i])
+        else:
+            for i in range(15):
+                scaler = StandardScaler(copy=False)
+                self.x[:, :, i] = scaler.fit_transform(f['x'][:, :, i])
+                scalers.append(scaler)
+            is_scaler = True
+
+        self.y = f['y'][:]
+        codedtime = encode_time_(get_tick_date_time_(f['timestamp'][:]))
+        codedtime = codedtime.reshape(len(codedtime), 1)
+        onehot_encoder = OneHotEncoder(categories=categories, sparse=False)
+        self.codedtime = onehot_encoder.fit_transform(codedtime)
+        f.close()
+
+    def __call__(self, i):
+        batch_index = self.indexes[i * self.batch_size: (i + 1) * self.batch_size]
+        # y_len = batch_index.shape[0]
+        X = self.x[batch_index]
+        Y = self.y[batch_index]
+        T = self.codedtime[batch_index]
+        X = torch.from_numpy(X).cuda()
+        # X = torch.tensor(X).cuda()
+        Y = torch.from_numpy(Y).cuda()
+        T = torch.from_numpy(T).cuda().float()
+
+        return X, Y, T
+
+    def __len__(self):
+        return int(np.ceil(self.n / self.batch_size))
+
+    def __del__(self):
+        del self.x, self.y, self.indexes
+
+
+class MyDataset_b():
+    def __init__(self, file_name, batch_size, boost_index, pred_len=3, enc_seq_len=20, label_len=1, scaler=False):
+        self.name = file_name
+        if not scaler:
+            self.__read_data__(boost_index)
+        else:
+            self.__read_data_s(boost_index)
+        self.batch_size = batch_size
+        self.n = self.y.shape[0]
+        self.indexes = np.arange(self.n)
+        # self.mask = list(range(15))  # [1, 3, 4, 5, 6, 7, 8, 9]# [0, 2, 10, 11, 12, 13, 14]
+        # self.enc_seq_len = enc_seq_len
+        # self.label_len = label_len
+        #         print(self.y.shape)
+        #         self.ts = f['timestamp'][:]
+        self.index = 0
+        # self.shift = 10
+        self.device = 'cuda'
+        # self.pred_len = pred_len - 1
+
+    def __read_data__(self, boost_index):
+        f = h5py.File(self.name, 'r')
+        self.x = f['x'][np.where(boost_index)[0]]
+        self.y = f['y'][np.where(boost_index)[0]]
+        codedtime = encode_time_(get_tick_date_time_(f['timestamp'][:]))
+        codedtime = codedtime.reshape(len(codedtime), 1)
+        onehot_encoder = OneHotEncoder(categories=categories, sparse=False)
+        self.codedtime = onehot_encoder.fit_transform(codedtime)
+        f.close()
+
+    def __read_data_s(self, boost_index):
+        global is_scaler, scalers
+        f = h5py.File(self.name, 'r')
+        self.x = np.empty(shape=f['x'][boost_index].shape, dtype=np.float32)
+        if is_scaler:
+            for i in range(15):
+                self.x[:, :, i] = scalers[i].transform(f['x'][np.where(boost_index)[0]][:, i])
+        else:
+            for i in range(15):
+                scaler = StandardScaler(copy=False)
+                self.x[:, :, i] = scaler.fit_transform(f['x'][np.where(boost_index)[0]][:, i])
+                scalers.append(scaler)
+            is_scaler = True
+
+        codedtime = encode_time_(get_tick_date_time_(f['timestamp'][:]))
+        codedtime = codedtime.reshape(len(codedtime), 1)
+        onehot_encoder = OneHotEncoder(categories=categories, sparse=False)
+        self.codedtime = onehot_encoder.fit_transform(codedtime)
+
+        self.y = f['y'][:]
         f.close()
 
     def __call__(self, i):

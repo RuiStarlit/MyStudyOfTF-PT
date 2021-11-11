@@ -68,6 +68,7 @@ class Train_RNN():
         self.train_f = train_f
         self.test_f = test_f
         self.print_r2 = False
+        self.epoch = 0
         self.val_batch = val_batch
         self.scaler = scaler
         self.boost_index = {}
@@ -89,7 +90,7 @@ class Train_RNN():
             raise NotImplementedError()
 
         model.to(self.device)
-        self.time = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime("%m-%d_%H:%M")
+        self.time = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime("_%m-%d_%H:%M")
         self.name = opt + self.time
         self.model = model
         print(self.model)
@@ -300,15 +301,16 @@ class Train_RNN():
         best_train_r2 = float('-inf')
         best_val_r2 = float('-inf')
         self.train_log_head()
-        early_stopping = EarlyStopping_R2(patience=patience)
+        early_stopping = EarlyStopping_R2(patience=patience, verbose=True)
 
         train_loss = np.empty((epochs,))
         train_r2 = np.empty((epochs,))
         val_loss = np.empty((epochs,))
         val_r2 = np.empty((epochs,))
         val_rate = np.empty((epochs,))
+        start_epoch = self.epoch + continued
         for epoch in tqdm(range(epochs)):
-            self.epoch = epoch
+            self.epoch = start_epoch + epoch
             if not boost:
                 loss, r2 = self.train_one_epoch(train_all, f)
             else:
@@ -344,10 +346,10 @@ class Train_RNN():
 
             print(
                 'Epoch:{:>3d} |Train_Loss:{:.6f} |R2:{:.6f}|Val_Loss:{:.6f} |R2:{:.6f} |Rate:{:.3f} |lr:{:.6f}'.format(
-                    epoch + 1 + continued,
+                    start_epoch + epoch + 1 + continued,
                     train_loss[epoch], train_r2[epoch], val_loss[epoch], val_r2[epoch], val_rate[epoch],
                     self.optimizer.state_dict()['param_groups'][0]['lr']))
-            log = [epoch + 1 + continued, train_loss[epoch], train_r2[epoch], val_loss[epoch], val_r2[epoch],
+            log = [start_epoch + epoch + 1 + continued, train_loss[epoch], train_r2[epoch], val_loss[epoch], val_r2[epoch],
                    val_rate[epoch],
                    self.optimizer.state_dict()['param_groups'][0]['lr']]
             self.train_log(log)
@@ -538,14 +540,14 @@ class MyDataset_b():
 
         self.indexes = np.arange(self.n)
         # self.mask = list(range(15))  # [1, 3, 4, 5, 6, 7, 8, 9]# [0, 2, 10, 11, 12, 13, 14]
-        self.enc_seq_len = enc_seq_len
-        self.label_len = label_len
+        # self.enc_seq_len = enc_seq_len
+        # self.label_len = label_len
         #         print(self.y.shape)
         #         self.ts = f['timestamp'][:]
         self.index = 0
-        self.shift = 10
+        # self.shift = 10
         self.device = 'cuda'
-        self.pred_len = pred_len - 1
+        # self.pred_len = pred_len - 1
 
     def __read_data__(self, boost_index):
         f = h5py.File(self.name, 'r')
