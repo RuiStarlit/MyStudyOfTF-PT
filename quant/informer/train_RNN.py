@@ -49,7 +49,7 @@ scalers = []
 class Train_RNN():
     def __init__(self, enc_in, dec_in, c_out, seq_len, out_len, d_model, d_ff, n_heads,
                  e_layers, d_layers, label_len,
-                 dropout, batch_size, val_batch, lr, device, train_f, test_f, scaler):
+                 dropout, batch_size, val_batch, lr, device, train_f, test_f, scaler, decay):
         self.enc_in = enc_in
         self.dec_in = dec_in
         self.c_out = c_out
@@ -71,6 +71,8 @@ class Train_RNN():
         self.val_batch = val_batch
         self.scaler = scaler
         self.boost_index = {}
+        self.clip_grad = True
+        self.decay = 3000
 
     def _build_model(self, opt='rnn'):
         if opt == 'attn_rnn':
@@ -108,10 +110,14 @@ class Train_RNN():
         self.lr = lr
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
-        print('Learning Rate is set to ' + str(lr) + '\n')
+        print('Learning Rate is set to ' + str(lr))
 
     def _selct_criterion(self, criterion):
         self.criterion = criterion
+
+    def load(self, path):
+        self.model.load_state_dict(torch.load(path))
+        print("success")
 
     def train_log(self, log):
         f = open('log/{}.txt'.format(self.name), 'a+')
@@ -183,14 +189,16 @@ class Train_RNN():
             self.optimizer.zero_grad()
             pred = self.model(x)
 
-            loss = torch.mean((pred - y) ** 2) + \
-                   F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+            loss = torch.mean((pred - y) ** 2)
+                   # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
 
             train_loss[i] = loss.item()
             loss.backward()
+            if self.clip_grad:
+                nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=20, norm_type=2)
             self.optimizer.step()
 
-            if i % 3000 == 0:
+            if i % self.decay == 0:
                 self.scheduler.step(loss)
 
             r2 = fr2(pred, y).cpu().detach().numpy()
@@ -234,8 +242,8 @@ class Train_RNN():
                 for i in range(len(dataset)):
                     x, y = dataset(i)
                     pred = self.model(x)
-                    loss = torch.mean((pred - y) ** 2) + \
-                           F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+                    loss = torch.mean((pred - y) ** 2)
+                           # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
                     val_loss[conter] = loss.item()
                     r2 = fr2(pred, y).cpu().detach().numpy()
                     rate = frate(pred, y).detach().cpu().numpy()
@@ -262,8 +270,8 @@ class Train_RNN():
                     for i in range(len(dataset)):
                         x, y = dataset(i)
                         pred = self.model(x)
-                        loss = torch.mean((pred - y) ** 2) + \
-                               F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+                        loss = torch.mean((pred - y) ** 2)
+                               # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
                         val_loss[i] = loss.item()
                         r2 = fr2(pred, y).cpu().detach().numpy()
                         rate = frate(pred, y).detach().cpu().numpy()
@@ -286,7 +294,9 @@ class Train_RNN():
 
         return val_loss, val_r2, val_rate
 
-    def train(self, epochs=200, train_all=True, f=None, val_all=False, testfile=None, save='train', continued=0, patience=15):
+    def train(self, epochs=200, train_all=True, f=None, val_all=False, testfile=None, save='train', continued=0, patience=15, boost=False):
+        if boost:
+            print('Training Mode: boost')
         best_train_r2 = float('-inf')
         best_val_r2 = float('-inf')
         self.train_log_head()
@@ -299,7 +309,10 @@ class Train_RNN():
         val_rate = np.empty((epochs,))
         for epoch in tqdm(range(epochs)):
             self.epoch = epoch
-            loss, r2 = self.train_one_epoch(train_all, f)
+            if not boost:
+                loss, r2 = self.train_one_epoch(train_all, f)
+            else:
+                loss, r2 = self.boost_train_one_epoch(train_all, f)
             train_loss[epoch] = loss
             train_r2[epoch] = r2
             # self.scheduler.step(loss)
@@ -361,7 +374,8 @@ class Train_RNN():
                     mse.append( (torch.abs(pred - y) ).detach().cpu().numpy() < threshold )
 
             self.boost_index[name] = np.concatenate(mse)
-            print(f'Drop {(~self.boost_index[i]).sum()} batch in {name}')
+
+            print(f'Drop {(~self.boost_index[name]).sum()} ({(~self.boost_index[name]).sum() / dataset.n *100:.3f}%) data in {name}')
 
     def boost_train_one_epoch(self, train_all=True, f=None):
         if not train_all:
@@ -388,12 +402,8 @@ class Train_RNN():
             r2 = r2.mean()
         return loss, r2
 
-
-
-
-
     def test(self, ic_name):
-        dataset = MyDataset(ic_name, self.Batch_size, self.out_len, label_len=self.label_len, scaler=self.scaler)
+        dataset = MyDataset(ic_name, self.val_batch, self.out_len, label_len=self.label_len, scaler=self.scaler)
         r2 = np.empty((len(dataset),))
         test_loss = np.empty((len(dataset),))
         pred_list = []
@@ -404,8 +414,8 @@ class Train_RNN():
             x, y = dataset(i)
             with torch.no_grad():
                 pred = self.model(x)
-                loss = torch.mean((pred - y) ** 2) + \
-                       F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+                loss = torch.mean((pred - y) ** 2)
+                       # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
                 test_loss[i] = loss.item()
             r2_i = fr2(pred, y).cpu().detach().numpy()
             r2[i] = r2_i
@@ -415,13 +425,14 @@ class Train_RNN():
         return r2, test_loss, pred_list, y_list
 
     def test_all(self):
+        self.model.eval()
         t_val_loss = np.empty((len(self.test_f),))
         t_val_r2 = np.empty((len(self.test_f), 1))
         t_val_rate = np.empty((len(self.test_f), 1))
         conter = 0
         for f in self.test_f:
             print('predicting on' + f.split('/')[-1].split('.')[0])
-            dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
+            dataset = MyDataset(file_name=f, batch_size=self.val_batch,
                                 pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
 
             val_loss = np.empty((len(dataset),))
@@ -432,8 +443,8 @@ class Train_RNN():
                 for i in range(len(dataset)):
                     x, y = dataset(i)
                     pred = self.model(x)
-                    loss = torch.mean((pred - y) ** 2) + \
-                           F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+                    loss = torch.mean((pred - y) ** 2)
+                           # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
                     val_loss[i] = loss.item()
                     r2 = fr2(pred, y).cpu().detach().numpy()
                     rate = frate(pred, y).detach().cpu().numpy()
@@ -452,9 +463,6 @@ class Train_RNN():
         val_rate = t_val_rate.mean()
         return val_loss, val_r2, val_rate, t_val_loss, t_val_r2, t_val_rate
 
-    def load(self, path):
-        self.model.load_state_dict(torch.load(path))
-        print("success")
 
 
 class MyDataset():
@@ -541,8 +549,8 @@ class MyDataset_b():
 
     def __read_data__(self, boost_index):
         f = h5py.File(self.name, 'r')
-        self.x = f['x'][boost_index, :, :]
-        self.y = f['y'][boost_index]
+        self.x = f['x'][np.where(boost_index)[0]]
+        self.y = f['y'][np.where(boost_index)[0]]
         f.close()
 
     def __read_data_s(self, boost_index):
@@ -551,11 +559,11 @@ class MyDataset_b():
         self.x = np.empty(shape=f['x'][boost_index].shape, dtype=np.float32)
         if is_scaler:
             for i in range(15):
-                self.x[:, :, i] = scalers[i].transform(f['x'][boost_index, :, i])
+                self.x[:, :, i] = scalers[i].transform(f['x'][np.where(boost_index)[0]][:, i])
         else:
             for i in range(15):
                 scaler = StandardScaler(copy=False)
-                self.x[:, :, i] = scaler.fit_transform(f['x'][boost_index, :, i])
+                self.x[:, :, i] = scaler.fit_transform(f['x'][np.where(boost_index)[0]][:, i])
                 scalers.append(scaler)
             is_scaler = True
 
