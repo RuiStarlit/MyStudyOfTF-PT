@@ -56,6 +56,7 @@ def get_tick_weekday(tick):
 
 
 def encode_time(dt):
+    # 对时间数据编码 周一到周五 和上下午接近收盘一共5*3=15个状态
     hm = int(dt.strftime("%H%M"))
     if hm <= 1130:
         hm = 0
@@ -68,7 +69,7 @@ def encode_time(dt):
     wd = dt.weekday()
     return wd * 10 + hm
 
-
+# 转化为可以作用于numpy的函数
 get_hour_minute_str_ = np.frompyfunc(get_tick_hour_minute_str, 1, 1)
 get_tick_date_time_ = np.frompyfunc(get_tick_date_time, 1, 1)
 get_tick_weekday_ = np.frompyfunc(get_tick_weekday, 1, 1)
@@ -87,7 +88,7 @@ scalers = []
 class Train_RNN():
     def __init__(self, enc_in, dec_in, c_out, seq_len, out_len, d_model, d_ff, n_heads,
                  e_layers, d_layers, label_len,
-                 dropout, batch_size, val_batch, lr, device, train_f, test_f, scaler, decay):
+                 dropout, batch_size, val_batch, lr, device, train_f, test_f, scaler, decay, opt_schedule):
         self.enc_in = enc_in
         self.dec_in = dec_in
         self.c_out = c_out
@@ -112,6 +113,7 @@ class Train_RNN():
         self.boost_index = {}
         self.clip_grad = True
         self.decay = decay
+        self.opt_schedule = opt_schedule    #true means schedule on decay
 
     def _build_model(self, opt='attn_rnn'):
         if opt == 'attn_rnn':
@@ -132,7 +134,7 @@ class Train_RNN():
 
         model.to(self.device)
         self.time = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime("%m-%d_%H:%M")
-        self.name = opt + self.time
+        self.name = opt+'_time' + self.time
         self.model = model
         print(self.model)
 
@@ -141,12 +143,23 @@ class Train_RNN():
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         elif opt == 'sgd':
             self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr, weight_decay=0.01)
+        elif opt == 'adamW':
+            self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr)
         else:
             raise NotImplementedError()
 
-    def _selct_scheduler(self, patience=8, factor=0.8, min_lr=0.00001):
-        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'min',
-                                                                    patience=patience, factor=factor, min_lr=min_lr)
+    def _selct_scheduler(self, opt='plateau', patience=8, factor=0.8, min_lr=0.00001, epoch=50,
+                         base_lr=0.0005, max_lr=0.005):
+        if opt == 'plateau':
+            self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'min',
+                                                                        patience=patience, factor=factor, min_lr=min_lr)
+        elif opt =='onecycle':
+            self.scheduler = torch.optim.lr_scheduler.OneCycleLR(self.optimizer, max_lr=0.01, epochs=epoch,
+                                                                 steps_per_epoch=9)
+        elif opt == 'cyclic':
+            self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer, base_lr=base_lr, max_lr=max_lr)
+        else:
+            raise NotImplementedError()
 
     def _set_lr(self, lr):
         self.lr = lr
@@ -178,6 +191,7 @@ class Train_RNN():
         e_layers = {}  d_layers = {}
           """.format(self.d_model, self.d_ff, self.n_heads, self.Batch_size, self.lr, self.label_len,
                      self.dropout, self.e_layers, self.d_layers))
+        f.write(f'Is scaler :{self.scaler}')
         f.close()
 
     def write_remarks(self, s):
@@ -211,16 +225,6 @@ class Train_RNN():
                    ))
         f.close()
 
-    def process_one_batch(self, batch_x, batch_y):
-        batch_y = batch_y.float()
-        # decoder input
-        dec_inp = torch.zeros([batch_y.shape[0], self.out_len, batch_y.shape[-1]]).float()
-        dec_inp = torch.cat([batch_y[:, :self.label_len], dec_inp], dim=1).float().to(self.device)
-        # encoder - decoder
-        outputs = self.model(batch_x, dec_inp)
-        batch_y = batch_y[:, -self.out_len:, 0].to(self.device)
-
-        return outputs, batch_y
 
     def single_train(self):
         self.model.train()
@@ -240,8 +244,9 @@ class Train_RNN():
                 nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=20, norm_type=2)
             self.optimizer.step()
 
-            if i % self.decay == 0:
-                self.scheduler.step(loss)
+            if self.opt_schedule:
+                if i % self.decay == 0:
+                    self.scheduler.step(loss)
 
             r2 = fr2(pred, y).cpu().detach().numpy()
             train_r2[i] = r2
@@ -250,18 +255,26 @@ class Train_RNN():
         train_r2 = train_r2.mean()
         return train_loss, train_r2
 
-    def train_one_epoch(self, train_all=True, f=None):
+    def train_one_epoch(self, train_all=True, f=None, bost=False):
         if not train_all:
-            self.dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
-                                     pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+            if bost:
+                self.dataset = MyDataset(file_name='temp_train/'+f.split('/')[-1], batch_size=self.Batch_size,
+                                         pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+            else:
+                self.dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
+                                         pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
             loss, r2 = self.single_train()
         else:
             loss = np.empty((len(self.train_f),))
             r2 = np.empty((len(self.train_f),))
             conter = 0
             for f in self.train_f:
-                self.dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
-                                         pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+                if bost:
+                    self.dataset = MyDataset(file_name='temp_train/' + f.split('/')[-1], batch_size=self.Batch_size,
+                                             pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+                else:
+                    self.dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
+                                             pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
                 train_loss, tran_r2 = self.single_train()
                 loss[conter] = train_loss
                 r2[conter] = tran_r2
@@ -297,16 +310,15 @@ class Train_RNN():
                 dataset = ValDataset(file_name=f, pred_len=self.out_len, scaler=self.scaler, device=self.device)
 
                 with torch.no_grad():
-                    for i in range(len(dataset)):
-                        x, y, t = dataset()
-                        pred = self.model(x, t)
-                        loss = torch.mean((pred - y) ** 2)
-                               # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
-                        val_loss = loss.item()
-                        r2 = fr2(pred, y).cpu().detach().numpy()
-                        rate = frate(pred, y).detach().cpu().numpy()
-                        val_r2 = r2
-                        val_rate = rate
+                    x, y, t = dataset()
+                    pred = self.model(x, t)
+                    loss = torch.mean((pred - y) ** 2)
+                           # F.binary_cross_entropy_with_logits(pred, torch.gt(y, 0).float())
+                    val_loss = loss.item()
+                    r2 = fr2(pred, y).cpu().detach().numpy()
+                    rate = frate(pred, y).detach().cpu().numpy()
+                    val_r2 = r2
+                    val_rate = rate
                 t_val_loss[conter] = val_loss
                 t_val_r2[conter] = val_r2
                 t_val_rate[conter] = val_rate
@@ -337,8 +349,9 @@ class Train_RNN():
             print(f'Set:{name} | len:{len(dataset)}')
             del (dataset)
 
-    def train(self, epochs=200, train_all=True, f=None, val_all=False, testfile=None, save='train', continued=0, patience=15, boost=False):
-        if boost:
+    def train(self, epochs=200, train_all=True, f=None, val_all=False, testfile=None, save='train', continued=0,
+              patience=20, bost=False):
+        if bost:
             print('Training Mode: boost')
         best_train_r2 = float('-inf')
         best_val_r2 = float('-inf')
@@ -353,13 +366,16 @@ class Train_RNN():
         start_epoch = self.epoch + continued
         for epoch in tqdm(range(epochs)):
             self.epoch = start_epoch + epoch
-            if not boost:
-                loss, r2 = self.train_one_epoch(train_all, f)
-            else:
-                loss, r2 = self.boost_train_one_epoch(train_all, f)
+            # if bost:
+            #     # print('1')
+            #     loss, r2 = self.boost_train_one_epoch(train_all, f)
+            # else:
+                # print('56')
+            loss, r2 = self.train_one_epoch(train_all, f, bost)
             train_loss[epoch] = loss
             train_r2[epoch] = r2
-            # self.scheduler.step(loss)
+            if not self.opt_schedule:
+                self.scheduler.step(loss)
 
             loss, r2, rate = self.val(val_all, testfile)
 
@@ -407,12 +423,12 @@ class Train_RNN():
         print("Done")
         self.write_log(train_loss, val_loss, train_r2, val_r2)
 
-    def boost(self, threshold):
+    def boost(self, threshold, path):
         for i in tqdm(range(len(self.train_f))):
             f = self.train_f[i]
             name = f.split('/')[-1]
             dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
-                                     pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+                                pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
             mse = []
             with torch.no_grad():
                 for i in range(len(dataset)):
@@ -420,16 +436,33 @@ class Train_RNN():
                     pred = self.model(x, t)
                     mse.append( (torch.abs(pred - y) ).detach().cpu().numpy() < threshold )
 
-            self.boost_index[name] = np.concatenate(mse)
+            mse = np.concatenate(mse)
 
-            print(f'Drop {(~self.boost_index[name]).sum()} ({(~self.boost_index[name]).sum() / dataset.n *100:.3f}%) data in {name}')
+            with h5py.File(f, 'r') as old_f:
+                x = old_f['x'][np.where(mse)[0]]
+                y = old_f['y'][np.where(mse)[0]]
+                ts = old_f['timestamp'][np.where(mse)[0]]
+
+            with h5py.File('temp_train/' + name, 'w') as new_f:
+                new_f.create_dataset('x', data=x)
+                new_f.create_dataset('y', data=y)
+                new_f.create_dataset('timestamp', data=ts)
+
+
+
+            print(
+                f'Drop {(~mse).sum()} ({(~mse).sum() / dataset.n * 100:.3f}%) data in {name}')
+            file = open('log/{}.txt'.format(self.name), 'a+')
+            file.write(
+                f'Drop {(~mse).sum()} ({(~mse).sum() / dataset.n * 100:.3f}%) data in {name}')
+            file.close()
 
     def boost_train_one_epoch(self, train_all=True, f=None):
         if not train_all:
             name = f.split('/')[-1]
             # boost_index = self.boost_index[name]
             self.dataset = MyDataset_b(file_name=f, batch_size=self.Batch_size, boost_index=self.boost_index[name],
-                                     pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+                                       pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
             loss, r2 = self.single_train()
         else:
             loss = np.empty((len(self.train_f),))
@@ -520,6 +553,7 @@ class MyDataset():
         f = h5py.File(self.name, 'r')
         self.x = f['x'][:]
         self.y = f['y'][:]
+        # 对时间数据进行onehot编码
         codedtime = encode_time_(get_tick_date_time_(f['timestamp'][:]))
         codedtime = codedtime.reshape(len(codedtime), 1)
         onehot_encoder = OneHotEncoder(categories=categories, sparse=False)
@@ -568,6 +602,7 @@ class MyDataset():
 
 
 class MyDataset_b():
+    # out of use
     def __init__(self, file_name, batch_size, boost_index, pred_len=3, enc_seq_len=20, label_len=1, scaler=False):
         self.name = file_name
         if not scaler:
