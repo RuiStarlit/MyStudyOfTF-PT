@@ -39,6 +39,10 @@ def fr2(x, y):
     return 1 - torch.sum((x - y) ** 2) / (torch.sum((y - torch.mean(y)) ** 2) + 1e-4)
 
 
+def fr2_n(y_pred, y_true):
+    return 1 - np.sum(np.square(y_pred - y_true)) / (np.sum( np.square(y_true - y_true.mean()) ) + 1e-4)
+
+
 def frate(x, y):
     return torch.mean(torch.gt(x * y, 0).float())
 
@@ -70,13 +74,13 @@ class Train_Informer_mul():
         self.test_f = test_f
         self.print_r2 = False
         self.epoch = 0
-        # self.val_batch = val_batch
+        self.val_batch = val_batch
         self.scaler = scaler
         self.boost_index = {}
         self.clip_grad = True
         self.decay = decay
         self.opt_schedule = opt_schedule
-        self.weight = 0.5
+        self.weight = 1
 
     def _build_model(self):
         model = Informer(enc_in=self.enc_in, dec_in=self.dec_in, c_out=self.c_out, out_len=self.out_len,
@@ -187,7 +191,7 @@ class Train_Informer_mul():
         dec_inp = torch.cat([batch_y[:, :self.label_len], dec_inp], dim=1).float().to(self.device)
         # encoder - decoder
         outputs = self.model(batch_x, dec_inp)
-        batch_y = batch_y[:, -self.out_len-10:, :].to(self.device)
+        batch_y = batch_y[:, -self.out_len:, :].to(self.device)
 
         return outputs, batch_y
 
@@ -201,23 +205,31 @@ class Train_Informer_mul():
             pred, Y = self.process_one_batch(x, y)
 
             # print('pred',pred.shape)
-            # print('Y',Y.shape)
+            # print('Y', Y.shape)
+            # sys.exit('QAQ')
 
-            loss = self.weight * torch.mean((pred[:, :, 0] - pred[:, :, 0]) ** 2) + \
-                   (1 - self.weight) * torch.mean((pred[:, -self.out_len:, 1] - Y[:, -self.out_len:, 1]))
+            loss = 0.6*torch.mean(torch.square(pred[:, :10, 0] - Y[:, :10, 0])) + \
+                0.4*torch.mean(torch.square(pred[:, 10:, 0] - Y[:, 10:, 0]))
+            # if i == len(self.dataset) - 1:
+            #
+            #     print(pred[:3, -self.out_len+10:, 0])
+            #     print(Y[:3, -self.out_len+10:, 0])
+
+                # sys.exit('QAQ')
+
             # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
 
             train_loss[i] = loss.item()
             loss.backward()
             if self.clip_grad:
-                nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=50, norm_type=2)
+                nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=20, norm_type=2)
             self.optimizer.step()
 
-            if self.opt_schedule:
-                if i % self.decay == 0:
-                    self.scheduler.step(loss)
+            # if self.opt_schedule:
+            #     if i % self.decay == 0:
+            #         self.scheduler.step(loss)
 
-            r2 = fr2(pred[:, 0], Y[:, 0]).cpu().detach().numpy()
+            r2 = fr2(pred[:, 10, 0], Y[:, 10, 0]).cpu().detach().numpy()
             train_r2[i] = r2
 
         train_loss = train_loss.mean()
@@ -227,8 +239,8 @@ class Train_Informer_mul():
     def train_one_epoch(self, train_all=True, f=None, bost=False):
         if not train_all:
             if bost:
-                self.dataset = MyDataset(file_name='temp_train/' + f.split('/')[-1], batch_size=self.Batch_size,
-                                         pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+                self.dataset = MyDataset_p(file_name='temp_train/' + f.split('/')[-1], batch_size=self.Batch_size,
+                                           pred_len=self.out_len, label_len=self.label_len)
             else:
                 self.dataset = MyDataset_p(file_name=f, batch_size=self.Batch_size,
                                          pred_len=self.out_len, label_len=self.label_len)
@@ -239,8 +251,8 @@ class Train_Informer_mul():
             conter = 0
             for f in self.train_f:
                 if bost:
-                    self.dataset = MyDataset(file_name='temp_train/' + f.split('/')[-1], batch_size=self.Batch_size,
-                                             pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+                    self.dataset = MyDataset_p(file_name='temp_train/' + f.split('/')[-1], batch_size=self.Batch_size,
+                                               pred_len=self.out_len, label_len=self.label_len)
                 else:
                     self.dataset = MyDataset_p(file_name=f, batch_size=self.Batch_size,
                                                pred_len=self.out_len, label_len=self.label_len)
@@ -257,16 +269,32 @@ class Train_Informer_mul():
         self.model.eval()
         if not val_all:
             print('predicting on' + f.split('/')[-1].split('.')[0])
-            dataset = ValDataset_p(file_name=f, pred_len=self.out_len, label_len=self.label_len, device=self.device)
+            dataset = MyDataset_p(file_name=f, batch_size=self.val_batch,
+                                  pred_len=self.out_len, label_len=self.label_len)
+
+            val_loss = np.empty((len(dataset),))
+            val_rate = np.empty((len(dataset),))
+            pred_list = []
+            y_list = []
             with torch.no_grad():
-                x, y = dataset()
-                pred, Y = self.process_one_batch(x, y)
-                pred = pred.squeeze(2)
-                loss = torch.mean((pred - Y) ** 2) + \
-                       F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
-                val_loss = loss.item()
-                val_r2 = fr2(pred[:, 0], Y[:, 0]).cpu().detach().numpy()
-                val_rate = frate(pred[:, 0], Y[:, 0]).detach().cpu().numpy()
+                for i in range(len(dataset)):
+                    x, y = dataset(i)
+
+                    pred, Y = self.process_one_batch(x, y)
+
+                    loss = 0.6 * torch.mean(torch.square(pred[:, :10, 0] - Y[:, :10, 0])) + \
+                           0.4 * torch.mean(torch.square(pred[:, 10:, 0] - Y[:, 10:, 0]))
+                    # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
+
+                    val_loss[i] = loss.item()
+                    val_rate[i] = frate(pred[:, 10, 0], Y[:, 10, 0]).detach().cpu().numpy()
+                    pred_list.append(pred[:, 10, 0].detach().cpu().numpy())
+                    y_list.append(Y[:, 10, 0].detach().cpu().numpy())
+                pred = np.concatenate(pred_list)
+                y = np.concatenate(y_list)
+                val_loss = val_loss.mean()
+                val_rate = val_rate.mean()
+                val_r2 = fr2_n(pred, y)
             del (dataset)
 
         else:
@@ -275,28 +303,49 @@ class Train_Informer_mul():
             t_val_rate = np.empty((len(self.test_f), 1))
             conter = 0
             for f in self.test_f:
-                dataset = ValDataset_p(file_name=f, pred_len=self.out_len, label_len=self.label_len, device=self.device)
+                dataset = MyDataset_p(file_name=f, batch_size=self.val_batch,
+                                      pred_len=self.out_len, label_len=self.label_len)
+                val_loss = np.empty((len(dataset),))
+                val_rate = np.empty((len(dataset),))
+                pred_list = []
+                y_list = []
 
                 with torch.no_grad():
-                    x, y = dataset()
-                    pred, Y = self.process_one_batch(x, y)
-                    pred = pred.squeeze(2)
-                    loss = torch.mean((pred - Y) ** 2)
-                    # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
-                    val_loss = loss.item()
-                    val_r2 = fr2(pred[:, 0], Y[:, 0]).cpu().detach().numpy()
-                    val_rate = frate(pred[:, 0], Y[:, 0]).detach().cpu().numpy()
-                t_val_loss[conter] = val_loss
+                    for i in range(len(dataset)):
+                        x, y = dataset(i)
+                        if y.shape[0] == 0:
+                            # 数据集末尾的batch太小，数据缺失导致无法预测。实际业务情况下不需要对比实际值就没问题
+                            # print('batch erro on', f, i)
+                            val_loss[i] = val_loss[:i].mean()
+                            val_rate[i] = val_rate[:i].mean()
+                            break
+
+                        pred, Y = self.process_one_batch(x, y)
+
+                        loss = 0.6 * torch.mean(torch.square(pred[:, :10, 0] - Y[:, :10, 0])) + \
+                               0.4 * torch.mean(torch.square(pred[:, 10:, 0] - Y[:, 10:, 0]))
+                        # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
+
+                        val_loss[i] = loss.item()
+                        val_rate[i] = frate(pred[:, 10, 0], Y[:, 10, 0]).detach().cpu().numpy()
+                        pred_list.append(pred[:, 10, 0].detach().cpu().numpy())
+                        y_list.append(Y[:, 10, 0].detach().cpu().numpy())
+
+                    pred = np.concatenate(pred_list)
+                    y = np.concatenate(y_list)
+                    val_r2 = fr2_n(pred, y)
+                # val_r2 = fr2_n(pred, Y)
+                t_val_loss[conter] = val_loss.mean()
                 t_val_r2[conter] = val_r2
-                t_val_rate[conter] = val_rate
+                t_val_rate[conter] = val_rate.mean()
                 conter += 1
                 del (dataset)
             val_loss = t_val_loss.mean()
             val_r2 = t_val_r2.mean()
             val_rate = t_val_rate.mean()
-            if self.print_r2:
-                max_r2 = np.argmax(t_val_r2)
-                print('The max r2 is test_f is' + str(t_val_r2[max_r2]) + ' at' + str(max_r2))
+            # if self.print_r2:
+            #     max_r2 = np.argmax(t_val_r2)
+            #     print('The max r2 is test_f is' + str(t_val_r2[max_r2]) + ' at' + str(max_r2))
 
         return val_loss, val_r2, val_rate
 
@@ -333,7 +382,7 @@ class Train_Informer_mul():
                    val_rate[epoch],
                    self.optimizer.state_dict()['param_groups'][0]['lr']]
             self.train_log(log)
-            self.lr += (1 / warmup_step) * delta_lr
+            self.lr += (1 / (warmup_step-1)) * delta_lr
             self._set_lr(self.lr)
         self._set_lr(stored_lr)
         print('Warm Up Done')
@@ -371,18 +420,17 @@ class Train_Informer_mul():
         start_epoch = self.epoch + continued
         for epoch in tqdm(range(epochs)):
             self.epoch = start_epoch + epoch
-            # if bost:
-            #     # print('1')
-            #     loss, r2 = self.boost_train_one_epoch(train_all, f)
-            # else:
-            # print('56')
+
             loss, r2 = self.train_one_epoch(train_all, f, bost)
             train_loss[epoch] = loss
             train_r2[epoch] = r2
-            if not self.opt_schedule:
-                self.scheduler.step(loss)
+            # if not self.opt_schedule:
+            self.scheduler.step(loss)
 
+            # if need_val:
             loss, r2, rate = self.val(val_all, testfile)
+            # else:
+            #     loss, r2, rate = 0, 0, 0
 
             val_loss[epoch] = loss
             val_r2[epoch] = r2
@@ -431,19 +479,18 @@ class Train_Informer_mul():
 
     def boost(self, threshold, path):
         # 选择误差小于threshold的数据，写成h5py文件以便后续读取
-        raise NotImplementedError()
         for i in tqdm(range(len(self.train_f))):
             f = self.train_f[i]
             name = f.split('/')[-1]
-            dataset = MyDataset(file_name=f, batch_size=self.Batch_size,
-                                pred_len=self.out_len, label_len=self.label_len, scaler=self.scaler)
+            dataset = MyDataset_p(file_name=f, batch_size=self.val_batch,
+                                  pred_len=self.out_len, label_len=self.label_len)
             mse = []
             with torch.no_grad():
-                for i in range(len(dataset)):
-                    x, y = dataset(i)
+                for j in range(len(dataset)):
+                    x, y = dataset(j)
                     pred, Y = self.process_one_batch(x, y)
-                    pred = pred.squeeze(2)
-                    mse.append((torch.abs(pred[:, 0] - Y[:, 0])).detach().cpu().numpy() < threshold)
+
+                    mse.append((torch.abs(pred[:, 10, 0] - Y[:, 10, 0])).detach().cpu().numpy() < threshold)
 
             mse = np.concatenate(mse)
 
@@ -465,20 +512,32 @@ class Train_Informer_mul():
             file.close()
 
     def test(self, ic_name):
-        dataset = ValDataset_p(file_name=ic_name, pred_len=self.out_len, label_len=self.label_len, device=self.device)
-
         self.model.eval()
-        x, y = dataset()
+        dataset = MyDataset_p(file_name=ic_name, batch_size=self.val_batch,
+                              pred_len=self.out_len, label_len=self.label_len)
+
+        test_loss = np.empty((len(dataset),))
+        val_rate = np.empty((len(dataset),))
+        pred_list = []
+        y_list = []
         with torch.no_grad():
-            pred, Y = self.process_one_batch(x, y)
-            pred = pred.squeeze(2)
-            loss = torch.mean((pred - Y) ** 2)
-            # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
-            test_loss = loss.item()
-        pred = pred.squeeze(2)
-        r2 = fr2(pred[:, 0], Y[:, 0]).cpu().detach().numpy()
-        pred = pred[:, 0].detach().cpu().numpy()
-        y = Y[:, 0].detach().cpu().numpy()
+            for i in range(len(dataset)):
+                x, y = dataset(i)
+                pred, Y = self.process_one_batch(x, y)
+
+                loss = 0.6 * torch.mean(torch.square(pred[:, :10, 0] - Y[:, :10, 0])) + \
+                       0.4 * torch.mean(torch.square(pred[:, 10:, 0] - Y[:, 10:, 0]))
+                # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
+
+                test_loss[i] = loss.item()
+                # val_rate[i] = frate(pred[:, 10, 0], Y[:, 10, 0]).detach().cpu().numpy()
+                pred_list.append(pred[:, 10, 0].detach().cpu().numpy())
+                y_list.append(Y[:, 10, 0].detach().cpu().numpy())
+            pred = np.concatenate(pred_list)
+            y = np.concatenate(y_list)
+            test_loss = test_loss.mean()
+            # val_rate = val_rate.mean()
+            r2 = fr2_n(pred, y)
 
         return r2, test_loss, pred, y
 
@@ -490,22 +549,34 @@ class Train_Informer_mul():
         conter = 0
         for f in self.test_f:
             print('predicting on' + f.split('/')[-1].split('.')[0])
-            dataset = ValDataset_p(file_name=f, pred_len=self.out_len, label_len=self.label_len, device=self.device)
+            dataset = MyDataset_p(file_name=f, batch_size=self.val_batch,
+                                  pred_len=self.out_len, label_len=self.label_len)
+
+            val_loss = np.empty((len(dataset),))
+            val_rate = np.empty((len(dataset),))
+            pred_list = []
+            y_list = []
 
             with torch.no_grad():
-                x, y = dataset()
-                pred, Y = self.process_one_batch(x, y)
-                pred = pred.squeeze(2)
-                loss = torch.mean((pred - Y) ** 2)
-                # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
-                val_loss = loss.item()
-                r2 = fr2(pred[:, 0], Y[:, 0]).cpu().detach().numpy()
-                rate = frate(pred[:, 0], Y[:, 0]).detach().cpu().numpy()
-                val_r2 = r2
-                val_rate = rate
-            t_val_loss[conter] = val_loss
+                for i in range(len(dataset)):
+                    x, y = dataset(i)
+                    pred, Y = self.process_one_batch(x, y)
+
+                    loss = 0.6 * torch.mean(torch.square(pred[:, :10, 0] - Y[:, :10, 0])) + \
+                           0.4 * torch.mean(torch.square(pred[:, 10:, 0] - Y[:, 10:, 0]))
+                    # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
+
+                    val_loss[i] = loss.item()
+                    val_rate[i] = frate(pred[:, 10, 0], Y[:, 10, 0]).detach().cpu().numpy()
+                    pred_list.append(pred[:, 10, 0].detach().cpu().numpy())
+                    y_list.append(Y[:, 10, 0].detach().cpu().numpy())
+
+                pred = np.concatenate(pred_list)
+                y = np.concatenate(y_list)
+                val_r2 = fr2_n(pred, y)
+            t_val_loss[conter] = val_loss.mean()
             t_val_r2[conter] = val_r2
-            t_val_rate[conter] = val_rate
+            t_val_rate[conter] = val_rate.mean()
             conter += 1
             del (dataset)
         val_loss = t_val_loss.mean()
@@ -624,7 +695,7 @@ class MyDataset():
 
 
 class MyDataset_p():
-    def __init__(self, file_name, batch_size, pred_len=3, enc_seq_len=20, label_len=1, initpoint=1000):
+    def __init__(self, file_name, batch_size, pred_len=13, enc_seq_len=20, label_len=1, initpoint=1000):
         self.name = file_name
         self.__read_data__()
         self.batch_size = batch_size
@@ -638,7 +709,7 @@ class MyDataset_p():
         self.index = 0
         self.shift = 10
         self.device = 'cuda'
-        self.pred_len = pred_len - 1
+        self.pred_len = pred_len - 1 - 10
         self.initpoint = initpoint
 
     def __read_data__(self):
@@ -719,6 +790,7 @@ class MyDataset_p():
 
 
 class ValDataset():
+    # out of use
     def __init__(self, file_name, pred_len=3, enc_seq_len=20, label_len=10, scaler=False, device='cuda'):
         self.name = file_name
         if not scaler:
@@ -791,6 +863,7 @@ class ValDataset():
 
 
 class ValDataset_p():
+    # out of use
     def __init__(self, file_name, pred_len=3, enc_seq_len=20, label_len=10, device='cuda', initpoint=1000):
         self.name = file_name
         self.__read_data__()
@@ -849,115 +922,4 @@ class ValDataset_p():
         del self.x, self.y
 
 
-class Transformer(torch.nn.Module):
-    def __init__(self, dim_val, dim_attn, input_size, dec_seq_len,
-                 out_seq_len=1, n_encoder_layers=1, n_decoder_layers=1,
-                 n_heads=1, dropout=0.1):
-        super(Transformer, self).__init__()
-        self.dec_seq_len = dec_seq_len
 
-        # Initiate encoder and Decoder layers
-        self.encs = nn.ModuleList()
-        for i in range(n_encoder_layers):
-            self.encs.append(EncoderLayer(dim_val, dim_attn, n_heads, dropout))
-
-        self.decs = nn.ModuleList()
-        for i in range(n_decoder_layers):
-            self.decs.append(DecoderLayer(dim_val, dim_attn, n_heads, dropout))
-
-        self.pos = PositionalEncoding(dim_val)
-
-        # Dense layers for managing network inputs and outputs
-        self.enc_input_fc = nn.Linear(input_size, dim_val)
-        self.dec_input_fc = nn.Linear(input_size, dim_val)
-        self.out_fc = nn.Linear(dec_seq_len * dim_val, out_seq_len)
-
-    def forward(self, x, y):
-        # encoder
-        e = self.encs[0](self.pos(self.enc_input_fc(x)))
-        #         print('e1',e.shape)
-        for enc in self.encs[1:]:
-            e = enc(e)
-
-        #         print('e2',e.shape)
-        # decoder
-
-        d = self.decs[0](y, e)
-        #         print('d1',d.shape)
-        for dec in self.decs[1:]:
-            d = dec(d, e)
-
-        # output
-        x = self.out_fc(d.flatten(start_dim=1))
-
-        return x
-
-
-class EncoderLayer(torch.nn.Module):
-    def __init__(self, dim_val, dim_attn, n_heads=1, dropout=0.1):
-        super(EncoderLayer, self).__init__()
-        self.attn = MultiHeadAttentionBlock(dim_val, dim_attn, n_heads)
-        self.fc1 = nn.Linear(dim_val, dim_val)
-        self.fc2 = nn.Linear(dim_val, dim_val)
-
-        self.norm1 = nn.LayerNorm(dim_val)
-        self.norm2 = nn.LayerNorm(dim_val)
-        self.dropout = nn.Dropout(dropout)
-
-    def forward(self, x):
-        a = self.attn(x)
-        x = self.norm1(x + a)
-
-        a = self.fc1(F.elu(self.fc2(x)))
-        a = self.dropout(a)
-        x = self.norm2(x + a)
-
-        return x
-
-
-class DecoderLayer(torch.nn.Module):
-    def __init__(self, dim_val, dim_attn, n_heads=1, dropout=0.1):
-        super(DecoderLayer, self).__init__()
-        self.attn1 = MultiHeadAttentionBlock(dim_val, dim_attn, n_heads)
-        self.attn2 = MultiHeadAttentionBlock(dim_val, dim_attn, n_heads)
-        self.fc1 = nn.Linear(dim_val, dim_val)
-        self.fc2 = nn.Linear(dim_val, dim_val)
-
-        self.norm1 = nn.LayerNorm(dim_val)
-        self.norm2 = nn.LayerNorm(dim_val)
-        self.norm3 = nn.LayerNorm(dim_val)
-        self.dropout = nn.Dropout(dropout)
-
-    def forward(self, x, enc):
-        a = self.attn1(x)
-        x = self.norm1(a + x)
-
-        a = self.attn2(x, kv=enc)
-        x = self.norm2(a + x)
-
-        a = self.fc1(F.elu(self.fc2(x)))
-        a = self.dropout(a)
-
-        x = self.norm3(x + a)
-        return x
-
-
-class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=5000):
-        super(PositionalEncoding, self).__init__()
-
-        pe = torch.zeros(max_len, d_model)
-        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-
-        pe = pe.unsqueeze(0).transpose(0, 1)
-
-        self.register_buffer('pe', pe)
-
-    def forward(self, x):
-        x = x + self.pe[:x.size(1), :].squeeze(1)
-        return x
