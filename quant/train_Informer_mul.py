@@ -81,6 +81,7 @@ class Train_Informer_mul():
         self.decay = decay
         self.opt_schedule = opt_schedule
         self.weight = 1
+        self.best_val_r2 = None
 
     def _build_model(self):
         model = Informer(enc_in=self.enc_in, dec_in=self.dec_in, c_out=self.c_out, out_len=self.out_len,
@@ -89,7 +90,7 @@ class Train_Informer_mul():
                          )
 
         model.to(self.device)
-        self.time = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime("_%m-%d_%H:%M")
+        self.time = (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime("_%m-%d_%H-%M")
         self.name = 'Informer-' + 'mutilstep-' + str(self.out_len) + 's' + self.time
         self.model = model
         print(self.model)
@@ -105,15 +106,16 @@ class Train_Informer_mul():
             raise NotImplementedError()
 
     def _selct_scheduler(self, opt='plateau', patience=8, factor=0.8, min_lr=0.00001, epoch=50,
-                         base_lr=0.0005, max_lr=0.005):
+                         base_lr=0.0005, max_lr=0.005, step=1000):
         if opt == 'plateau':
             self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'min',
                                                                         patience=patience, factor=factor, min_lr=min_lr)
         elif opt == 'onecycle':
             self.scheduler = torch.optim.lr_scheduler.OneCycleLR(self.optimizer, max_lr=0.01, epochs=epoch,
-                                                                 steps_per_epoch=9)
+                                                                 steps_per_epoch=5)
         elif opt == 'cyclic':
-            self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer, base_lr=base_lr, max_lr=max_lr)
+            self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer, base_lr=base_lr, max_lr=max_lr,
+                                                               step_size_up=step, step_size_down=step,cycle_momentum=False)
         else:
             raise NotImplementedError()
 
@@ -137,6 +139,10 @@ class Train_Informer_mul():
             epoch,
             avg_loss, r2_a, val_aloss, r2_avg, rate_avg, lr))
         f.close()
+
+    def save(self, name):
+        torch.save(self.model.state_dict(), 'checkpoint/' + name + '.pt')
+        print('Successfully save')
 
     def train_log_head(self):
         f = open('log/{}.txt'.format(self.name), 'a+')
@@ -408,9 +414,10 @@ class Train_Informer_mul():
         if bost:
             print('Training Mode: boost')
         best_train_r2 = float('-inf')
-        best_val_r2 = float('-inf')
+        if self.best_val_r2 is None:
+            self.best_val_r2 = float('-inf')
         self.train_log_head()
-        early_stopping = EarlyStopping_R2(patience=patience, verbose=True)
+        early_stopping = EarlyStopping_R2(patience=patience, verbose=True, val_r2=self.best_val_r2)
 
         train_loss = np.empty((epochs,))
         train_r2 = np.empty((epochs,))
@@ -445,8 +452,8 @@ class Train_Informer_mul():
                     file.write('Save here' + '\n')
                     file.close()
             elif save == 'test':
-                if val_r2[epoch] > best_val_r2:
-                    best_val_r2 = val_r2[epoch]
+                if val_r2[epoch] > self.best_val_r2:
+                    self.best_val_r2 = val_r2[epoch]
                     torch.save(self.model.state_dict(), 'checkpoint/' + self.name + '.pt')
                     print('Save here')
                     file = open('log/{}.txt'.format(self.name), 'a+')
@@ -695,7 +702,7 @@ class MyDataset():
 
 
 class MyDataset_p():
-    def __init__(self, file_name, batch_size, pred_len=13, enc_seq_len=20, label_len=1, initpoint=1000):
+    def __init__(self, file_name, batch_size, pred_len=13, enc_seq_len=20, label_len=10, initpoint=1000):
         self.name = file_name
         self.__read_data__()
         self.batch_size = batch_size
@@ -768,8 +775,8 @@ class MyDataset_p():
         Y = np.hstack((Y1[:, :-1], Y2))  # size Batch, label_len+shift+1+pred_len-1, 1
         pY = np.empty((Y.shape), dtype=np.float32)
         pY[:, 0] = self.initpoint
-        for i in range(1, self.label_len + self.shift + 1 + self.pred_len):
-            pY[:, i] = (Y[:, i] / 100 + 1) * pY[:, i - 1]
+        for j in range(1, self.label_len + self.shift + 1 + self.pred_len):
+            pY[:, j] = (Y[:, j] / 100 + 1) * pY[:, j - 1]
 
         # 计算价格
 
