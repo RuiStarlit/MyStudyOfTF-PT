@@ -1,0 +1,7 @@
+The Hyperparameter:
+        d_model = 64 d_ff = 32
+        n_heads = 2 Batch_size = 256 lr = 0.001
+        label_len = 20 dropout = 0.3
+        e_layers = 5  d_layers = 4
+          Is scaler :FalseAfter training train\20190401_20190412  Train_loss:0.540396 R2:0.549295 | Val_Loss:0.295401 |R2:0.758180 |Rate:0.790 |lr:0.001564
+After training train\20190412_20190424  Train_loss:0.241258 R2:0.816706 | Val_Loss:0.115885 |R2:0.914416 |Rate:0.830 |lr:0.003121

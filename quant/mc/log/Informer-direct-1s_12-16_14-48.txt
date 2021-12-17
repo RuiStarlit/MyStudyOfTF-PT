@@ -1,0 +1,6 @@
+The Hyperparameter:
+        d_model = 64 d_ff = 32
+        n_heads = 6 Batch_size = 256 lr = 0.001
+        label_len = 10 dropout = 0.1
+        e_layers = 5  d_layers = 5
+          Is scaler :False

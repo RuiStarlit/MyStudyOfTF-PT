@@ -1,0 +1,37 @@
+Epoch:  1 |Train_Loss:0.369643 |R2:0.055835|Val_Loss:0.332068 |R2:0.278832 |Rate:0.670|lr:0.000500
+Epoch:  2 |Train_Loss:0.292584 |R2:0.229899|Val_Loss:0.324140 |R2:0.295415 |Rate:0.675|lr:0.000625
+Epoch:  3 |Train_Loss:0.285182 |R2:0.247507|Val_Loss:0.324721 |R2:0.295263 |Rate:0.675|lr:0.000750
+Epoch:  4 |Train_Loss:0.278916 |R2:0.258523|Val_Loss:0.324149 |R2:0.295658 |Rate:0.671|lr:0.000875
+Epoch:  5 |Train_Loss:0.275876 |R2:0.266666|Val_Loss:0.330157 |R2:0.282931 |Rate:0.663|lr:0.001000
+The Hyperparameter:
+        d_model = 32 d_ff = 16
+        n_heads = 3 Batch_size = 128 lr = 0.001
+        label_len = 10 dropout = 0.3
+        e_layers = 2  d_layers = 1
+          Is scaler :FalseSave here
+Epoch:  5 |Train_Loss:0.347670 |R2:0.266581|Val_Loss:0.350744 |R2:0.238210 |Rate:0.637|lr:0.001000
+Save here
+Epoch:  6 |Train_Loss:0.335787 |R2:0.285386|Val_Loss:0.360894 |R2:0.216172 |Rate:0.630|lr:0.001000
+Save here
+Epoch:  7 |Train_Loss:0.331549 |R2:0.292428|Val_Loss:0.369985 |R2:0.198141 |Rate:0.626|lr:0.001000
+Save here
+Epoch:  8 |Train_Loss:0.327819 |R2:0.297955|Val_Loss:0.374354 |R2:0.187956 |Rate:0.623|lr:0.001000
+Save here
+Epoch:  9 |Train_Loss:0.326181 |R2:0.301243|Val_Loss:0.375347 |R2:0.185691 |Rate:0.623|lr:0.001000
+Save here
+Epoch: 10 |Train_Loss:0.323646 |R2:0.304423|Val_Loss:0.378974 |R2:0.177094 |Rate:0.621|lr:0.001000
+Save here
+Epoch: 11 |Train_Loss:0.323058 |R2:0.305716|Val_Loss:0.382401 |R2:0.170667 |Rate:0.620|lr:0.001000
+Save here
+Epoch: 12 |Train_Loss:0.322845 |R2:0.306317|Val_Loss:0.379733 |R2:0.175216 |Rate:0.620|lr:0.001000
+Epoch: 13 |Train_Loss:0.323376 |R2:0.304846|Val_Loss:0.381325 |R2:0.172344 |Rate:0.618|lr:0.001000
+Epoch: 14 |Train_Loss:0.322833 |R2:0.305870|Val_Loss:0.380761 |R2:0.173211 |Rate:0.618|lr:0.001000
+Save here
+Epoch: 15 |Train_Loss:0.321452 |R2:0.307557|Val_Loss:0.384632 |R2:0.164670 |Rate:0.616|lr:0.001000
+Epoch: 16 |Train_Loss:0.321850 |R2:0.307530|Val_Loss:0.384211 |R2:0.165938 |Rate:0.616|lr:0.001000
+Save here
+Epoch: 17 |Train_Loss:0.320852 |R2:0.308338|Val_Loss:0.383745 |R2:0.166408 |Rate:0.617|lr:0.001000
+Epoch: 18 |Train_Loss:0.322153 |R2:0.307119|Val_Loss:0.385184 |R2:0.163333 |Rate:0.617|lr:0.001000
+Epoch: 19 |Train_Loss:0.323101 |R2:0.305348|Val_Loss:0.387308 |R2:0.159524 |Rate:0.614|lr:0.001000
+Epoch: 20 |Train_Loss:0.322595 |R2:0.306462|Val_Loss:0.387135 |R2:0.159438 |Rate:0.616|lr:0.001000
+Epoch: 21 |Train_Loss:0.320838 |R2:0.308051|Val_Loss:0.385677 |R2:0.162403 |Rate:0.615|lr:0.001000

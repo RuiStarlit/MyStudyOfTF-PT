@@ -1,0 +1,5 @@
+Epoch:  1 |Train_Loss:0.366708 |R2:0.068123|Val_Loss:0.333984 |R2:0.274406 |Rate:0.671|lr:0.000500
+Epoch:  2 |Train_Loss:0.293516 |R2:0.227570|Val_Loss:0.325983 |R2:0.291585 |Rate:0.675|lr:0.000625
+Epoch:  3 |Train_Loss:0.287687 |R2:0.243042|Val_Loss:0.323348 |R2:0.297305 |Rate:0.676|lr:0.000750
+Epoch:  4 |Train_Loss:0.285692 |R2:0.250553|Val_Loss:0.322111 |R2:0.300147 |Rate:0.676|lr:0.000875
+Epoch:  5 |Train_Loss:0.282512 |R2:0.255822|Val_Loss:0.320846 |R2:0.302908 |Rate:0.677|lr:0.001000

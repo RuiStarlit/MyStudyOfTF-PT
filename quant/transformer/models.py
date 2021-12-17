@@ -42,7 +42,10 @@ class Transformer(torch.nn.Module):
         self.out_fc1 = nn.Linear(label_len * dim_val, 2 * dim_val)
         # self.fc1 = nn.Linear(2 * dim_val, dim_val)
         self.out_fc2 = nn.Linear(4 * dim_val, dim_val)
-        self.out_fc3 = nn.Linear(3 * dim_val, out_seq_len)
+        self.out_fc3 = nn.Linear(3 * dim_val + 4, dim_val)
+        self.out_fc4 = nn.Linear(dim_val, out_seq_len)
+        self.binary_fc = nn.Linear(3 * dim_val + 4, dim_val)
+        self.binary_fc2 = nn.Linear(dim_val, 1)
 
     def forward(self, x, y):
         # encoder
@@ -51,8 +54,6 @@ class Transformer(torch.nn.Module):
         # # #         print('e1',e.shape)
         for enc in self.encs[1:]:
             e = enc(e)
-
-
         # e, (hn, cn) = self.rnn(x)
         # print('e2',e.shape)
         # hn = torch.cat((hn[-2, :, :], hn[-1, :, :]), dim=1)
@@ -61,6 +62,7 @@ class Transformer(torch.nn.Module):
         # decoder
         # y [B, label_len, 2]
         y, (hn, cn) = self.rnn(y)
+        hn = torch.cat((hn[-2, :, :], hn[-1, :, :]), dim=1)
 
         d = self.decs[0](self.dec_input_fc(y), e)
         # d = self.decs[0](self.pos(self.dec_input_fc(y)), e)
@@ -70,11 +72,63 @@ class Transformer(torch.nn.Module):
 
         # output
         x = F.elu(self.out_fc1(d.flatten(start_dim=1)))
-        x = torch.cat((e[:, -1], x), dim=1)
+        s = torch.cat((e[:, -1], x, hn), dim=1)
         # x = self.out_fc2(x)
-        x = self.out_fc3(x)
+        x = F.elu(self.out_fc3(s))
+        x = self.out_fc4(x)
+
+        # xx = self.binary_fc2(F.elu(self.binary_fc(s)))
+        # xx = F.sigmoid(xx)
 
         return x
+
+
+class Transformer_LSTM(torch.nn.Module):
+    def __init__(self, dim_val, dim_attn, enc_in, dec_in, label_len,
+                 out_seq_len=1, n_encoder_layers=1, n_decoder_layers=1,
+                 n_heads=1, dropout=0.1):
+        super(Transformer_LSTM, self).__init__()
+        self.dec_seq_len = dec_in
+
+        self.rnn = nn.LSTM(input_size=enc_in, hidden_size=dim_val, num_layers=n_encoder_layers, bidirectional=False,
+                           dropout=dropout, batch_first=True)
+
+        self.decoder = nn.LSTM(input_size=dec_in, hidden_size=dim_val, num_layers=n_encoder_layers, bidirectional=False,
+                           dropout=dropout, batch_first=True)
+
+        self.attn = AttentionLayer(Attention(False), dim_val, n_heads, dim_attn, dim_attn)
+        self.norm = nn.LayerNorm(dim_val)
+        self.d_fc1 = nn.Linear(label_len * dim_val, 2* dim_val)
+        self.d_fc2 = nn.Linear(2 * dim_val, 1 * dim_val)
+        self.out_fc1 = nn.Linear(5 * dim_val, 2* dim_val)
+        self.out_fc2 = nn.Linear(2 * dim_val, 2 * dim_val)
+
+        self.out_fc3 = nn.Linear(2 * dim_val, dim_val)
+        self.out_fc4 = nn.Linear(dim_val, out_seq_len)
+
+    def forward(self, x, y):
+        e, (hn_e, cn_e) = self.rnn(x)
+        hn_e = torch.cat((hn_e[-2, :, :], hn_e[-1, :, :]), dim=1)
+
+        d, (hn_d, cn_d) = self.decoder(y)
+        hn_d = torch.cat((hn_d[-2, :, :], hn_d[-1, :, :]), dim=1)
+
+        a = self.attn(d, e, e, None)
+        d = self.norm(d + a)
+
+        d = F.elu(self.d_fc1(d.flatten(start_dim=1)))
+        d = self.d_fc2(d)
+        d = torch.cat((hn_e, hn_d, d), dim=1)
+
+        x = self.out_fc2(F.elu(self.out_fc1(d)))
+        x = F.relu(x)
+
+        x = self.out_fc4(F.elu(self.out_fc3(x)))
+        # xx = F.sigmoid(xx)
+
+        return x
+
+
 
 
 class EncoderLayer(torch.nn.Module):

@@ -1,0 +1,11 @@
+The Hyperparameter:
+        d_model = 128 d_ff = 32
+        n_heads = 6 Batch_size = 128 lr = 0.0001
+        label_len = 10 dropout = 0.3
+        e_layers = 3  d_layers = 2
+          Is scaler :FalseSave here
+Epoch:  1 |Train_Loss:0.332721 |R2:0.257091|Val_Loss:0.302872 |R2:0.342594 |Rate:0.678|lr:0.000100
+Save here
+Epoch:  2 |Train_Loss:0.330435 |R2:0.261612|Val_Loss:0.302557 |R2:0.343146 |Rate:0.678|lr:0.000100
+Save here
+Epoch:  3 |Train_Loss:0.329702 |R2:0.263655|Val_Loss:0.301771 |R2:0.344866 |Rate:0.678|lr:0.000100

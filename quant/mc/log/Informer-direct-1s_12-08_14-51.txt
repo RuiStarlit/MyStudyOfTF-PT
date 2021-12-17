@@ -1,0 +1,19 @@
+The Hyperparameter:
+        d_model = 128 d_ff = 32
+        n_heads = 6 Batch_size = 128 lr = 1e-05
+        label_len = 10 dropout = 0.3
+        e_layers = 3  d_layers = 2
+          Is scaler :FalseSave here
+Epoch:  1 |Train_Loss:0.323044 |R2:0.256725|Val_Loss:0.301369 |R2:0.345907 |Rate:0.678|lr:0.000010
+Save here
+Epoch:  2 |Train_Loss:0.322586 |R2:0.257047|Val_Loss:0.301960 |R2:0.344713 |Rate:0.677|lr:0.000010
+Save here
+Epoch:  3 |Train_Loss:0.322084 |R2:0.257594|Val_Loss:0.302103 |R2:0.344342 |Rate:0.677|lr:0.000010
+Epoch:  4 |Train_Loss:0.322297 |R2:0.257153|Val_Loss:0.302050 |R2:0.344459 |Rate:0.677|lr:0.000010
+Save here
+Epoch:  5 |Train_Loss:0.322181 |R2:0.257610|Val_Loss:0.302013 |R2:0.344493 |Rate:0.677|lr:0.000010
+
+        Min Train Loss is 0.32208433017926996 at 2
+        Min Test Loss is 0.30136856108889515 at 0
+        Max R2 is 0.2576100359622251 at 4
+        

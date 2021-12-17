@@ -1,0 +1,30 @@
+The Hyperparameter:
+        d_model = 32 d_ff = 32
+        n_heads = 3 Batch_size = 256 lr = 0.0005
+        label_len = 10 dropout = 0.3
+        e_layers = 2  d_layers = 2
+          Is scaler :FalseSave here
+Epoch:  1 |Train_Loss:0.717126 |R2:0.139060|Val_Loss:0.305510 |R2:0.335919 |Rate:0.673|lr:0.000897
+Save here
+Epoch:  2 |Train_Loss:0.559248 |R2:0.293206|Val_Loss:0.322355 |R2:0.299980 |Rate:0.660|lr:0.000733
+Save here
+Epoch:  3 |Train_Loss:0.515023 |R2:0.333426|Val_Loss:0.334727 |R2:0.273204 |Rate:0.650|lr:0.000599
+Save here
+Epoch:  4 |Train_Loss:0.502249 |R2:0.346106|Val_Loss:0.341777 |R2:0.259414 |Rate:0.646|lr:0.000519
+Save here
+Epoch:  5 |Train_Loss:0.495411 |R2:0.352995|Val_Loss:0.339902 |R2:0.263507 |Rate:0.647|lr:0.000464
+Save here
+Epoch:  6 |Train_Loss:0.490958 |R2:0.357472|Val_Loss:0.343156 |R2:0.256092 |Rate:0.644|lr:0.000423
+Save here
+Epoch:  7 |Train_Loss:0.487016 |R2:0.361643|Val_Loss:0.347260 |R2:0.247606 |Rate:0.642|lr:0.000392
+Save here
+Epoch:  8 |Train_Loss:0.483905 |R2:0.364833|Val_Loss:0.346101 |R2:0.249820 |Rate:0.642|lr:0.000367
+Save here
+Epoch:  9 |Train_Loss:0.482421 |R2:0.367656|Val_Loss:0.344140 |R2:0.254690 |Rate:0.645|lr:0.000346
+Epoch: 10 |Train_Loss:0.482150 |R2:0.366666|Val_Loss:0.345222 |R2:0.252272 |Rate:0.644|lr:0.000328
+Save here
+Epoch: 11 |Train_Loss:0.478522 |R2:0.370133|Val_Loss:0.344266 |R2:0.254908 |Rate:0.645|lr:0.000313
+Save here
+Epoch: 12 |Train_Loss:0.476659 |R2:0.372153|Val_Loss:0.344955 |R2:0.252905 |Rate:0.643|lr:0.000299
+Save here
+Epoch: 13 |Train_Loss:0.474617 |R2:0.373980|Val_Loss:0.348295 |R2:0.246527 |Rate:0.641|lr:0.000288

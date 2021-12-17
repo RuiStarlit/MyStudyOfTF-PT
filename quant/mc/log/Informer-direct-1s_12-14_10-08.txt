@@ -1,0 +1,65 @@
+The Hyperparameter:
+        d_model = 64 d_ff = 16
+        n_heads = 3 Batch_size = 256 lr = 0.001
+        label_len = 10 dropout = 0.1
+        e_layers = 3  d_layers = 2
+          Is scaler :FalseAfter training train\20190401_20190412  Train_loss:1.430862 R2:-0.190024 | Val_Loss:1.177190 |R2:0.026059 |Rate:0.557 |lr:0.000018
+Test_Loss:0.449134 |R2:0.030944 |Rate:0.556 
+After training train\20190412_20190424  Train_loss:1.090642 R2:0.179093 | Val_Loss:0.944383 |R2:0.310747 |Rate:0.669 |lr:0.000035
+Test_Loss:0.332420 |R2:0.266526 |Rate:0.669 
+After training train\20190425_20190510  Train_loss:1.088692 R2:0.322897 | Val_Loss:1.042222 |R2:0.353395 |Rate:0.683 |lr:0.000034
+Test_Loss:0.320584 |R2:0.292094 |Rate:0.671 
+After training train\20190510_20190522  Train_loss:0.846459 R2:0.321630 | Val_Loss:0.839161 |R2:0.341213 |Rate:0.675 |lr:0.000030
+Test_Loss:0.307335 |R2:0.326483 |Rate:0.672 
+After training train\20190523_20190604  Train_loss:0.670687 R2:0.325135 | Val_Loss:0.649849 |R2:0.346080 |Rate:0.683 |lr:0.000027
+Test_Loss:0.302126 |R2:0.338531 |Rate:0.675 
+After training train\20190604_20190617  Train_loss:0.429418 R2:0.344084 | Val_Loss:0.422696 |R2:0.366157 |Rate:0.681 |lr:0.000025
+Test_Loss:0.298409 |R2:0.347981 |Rate:0.678 
+After training train\20190617_20190628  Train_loss:0.446606 R2:0.323046 | Val_Loss:0.440590 |R2:0.342556 |Rate:0.675 |lr:0.000023
+Test_Loss:0.297770 |R2:0.349667 |Rate:0.679 
+After training train\20190628_20190710  Train_loss:0.333545 R2:0.352815 | Val_Loss:0.330291 |R2:0.369404 |Rate:0.683 |lr:0.000022
+Test_Loss:0.296068 |R2:0.354071 |Rate:0.680 
+After training train\20190710_20190723  Train_loss:0.394355 R2:0.301401 | Val_Loss:0.388145 |R2:0.320365 |Rate:0.668 |lr:0.000021
+Test_Loss:0.297662 |R2:0.350072 |Rate:0.679 
+After training train\20190723_20190731  Train_loss:0.266792 R2:0.351231 | Val_Loss:0.259532 |R2:0.385104 |Rate:0.672 |lr:0.000020
+Test_Loss:0.297579 |R2:0.350561 |Rate:0.680 
+Save here
+Epoch:  1 |Train_Loss:0.699806 |R2:0.263131|Val_Loss:0.649406 |R2:0.316108 |Rate:0.665|lr:0.000020
+After training train\20190401_20190412  Train_loss:0.775816 R2:0.354490 | Val_Loss:0.753055 |R2:0.368302 |Rate:0.691 |lr:0.000019
+Test_Loss:0.316785 |R2:0.304371 |Rate:0.674 
+After training train\20190412_20190424  Train_loss:0.858917 R2:0.350706 | Val_Loss:0.841865 |R2:0.360580 |Rate:0.687 |lr:0.000018
+Test_Loss:0.303838 |R2:0.333012 |Rate:0.675 
+After training train\20190425_20190510  Train_loss:1.003620 R2:0.374212 | Val_Loss:0.991478 |R2:0.394650 |Rate:0.692 |lr:0.000017
+Test_Loss:0.307728 |R2:0.322299 |Rate:0.674 
+After training train\20190510_20190522  Train_loss:0.802536 R2:0.355603 | Val_Loss:0.811569 |R2:0.363084 |Rate:0.680 |lr:0.000017
+Test_Loss:0.307794 |R2:0.324607 |Rate:0.668 
+After training train\20190523_20190604  Train_loss:0.643056 R2:0.350523 | Val_Loss:0.642706 |R2:0.371602 |Rate:0.687 |lr:0.000016
+Test_Loss:0.300016 |R2:0.342905 |Rate:0.675 
+After training train\20190604_20190617  Train_loss:0.416929 R2:0.363454 | Val_Loss:0.414145 |R2:0.374892 |Rate:0.678 |lr:0.000015
+Test_Loss:0.296008 |R2:0.353218 |Rate:0.678 
+After training train\20190617_20190628  Train_loss:0.434576 R2:0.340438 | Val_Loss:0.435723 |R2:0.348500 |Rate:0.676 |lr:0.000015
+Test_Loss:0.303455 |R2:0.335687 |Rate:0.670 
+After training train\20190628_20190710  Train_loss:0.326184 R2:0.366329 | Val_Loss:0.319757 |R2:0.384184 |Rate:0.680 |lr:0.000015
+Test_Loss:0.296737 |R2:0.351718 |Rate:0.676 
+After training train\20190710_20190723  Train_loss:0.384195 R2:0.318595 | Val_Loss:0.379963 |R2:0.327400 |Rate:0.661 |lr:0.000014
+Test_Loss:0.304346 |R2:0.334011 |Rate:0.668 
+After training train\20190723_20190731  Train_loss:0.261747 R2:0.362596 | Val_Loss:0.264234 |R2:0.375244 |Rate:0.667 |lr:0.000014
+Test_Loss:0.301713 |R2:0.339703 |Rate:0.671 
+Save here
+Epoch:  2 |Train_Loss:0.590758 |R2:0.353695|Val_Loss:0.585450 |R2:0.366844 |Rate:0.680|lr:0.000014
+After training train\20190401_20190412  Train_loss:0.754379 R2:0.370999 | Val_Loss:0.742330 |R2:0.383350 |Rate:0.692 |lr:0.000014
+Test_Loss:0.323783 |R2:0.289199 |Rate:0.667 
+After training train\20190412_20190424  Train_loss:0.839844 R2:0.364668 | Val_Loss:0.830897 |R2:0.374094 |Rate:0.672 |lr:0.000013
+Test_Loss:0.330174 |R2:0.272991 |Rate:0.658 
+After training train\20190425_20190510  Train_loss:0.978023 R2:0.391352 | Val_Loss:1.003181 |R2:0.376334 |Rate:0.680 |lr:0.000013
+Test_Loss:0.352149 |R2:0.219181 |Rate:0.644 
+After training train\20190510_20190522  Train_loss:0.788208 R2:0.366662 | Val_Loss:0.795282 |R2:0.381270 |Rate:0.679 |lr:0.000013
+Test_Loss:0.320803 |R2:0.295742 |Rate:0.661 
+After training train\20190523_20190604  Train_loss:0.631658 R2:0.362849 | Val_Loss:0.648903 |R2:0.357859 |Rate:0.674 |lr:0.000012
+Test_Loss:0.328102 |R2:0.278472 |Rate:0.654 
+After training train\20190604_20190617  Train_loss:0.410809 R2:0.371512 | Val_Loss:0.435412 |R2:0.355011 |Rate:0.671 |lr:0.000012
+Test_Loss:0.320495 |R2:0.297075 |Rate:0.657 
+After training train\20190617_20190628  Train_loss:0.428392 R2:0.349933 | Val_Loss:0.448963 |R2:0.326088 |Rate:0.663 |lr:0.000012
+Test_Loss:0.320120 |R2:0.297452 |Rate:0.654 
+After training train\20190628_20190710  Train_loss:0.322547 R2:0.373552 | Val_Loss:0.348715 |R2:0.324420 |Rate:0.652 |lr:0.000012
+Test_Loss:0.332823 |R2:0.267503 |Rate:0.641 

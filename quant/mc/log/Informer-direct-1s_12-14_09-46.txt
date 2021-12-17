@@ -1,0 +1,6 @@
+The Hyperparameter:
+        d_model = 64 d_ff = 16
+        n_heads = 3 Batch_size = 256 lr = 0.001
+        label_len = 10 dropout = 0.1
+        e_layers = 3  d_layers = 2
+          Is scaler :FalseTest_Loss:0.465557 |R2:-0.002657 |Rate:0.488 

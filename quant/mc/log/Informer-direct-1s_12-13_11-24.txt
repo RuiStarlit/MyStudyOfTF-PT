@@ -1,0 +1,25 @@
+The Hyperparameter:
+        d_model = 64 d_ff = 32
+        n_heads = 2 Batch_size = 256 lr = 0.0005
+        label_len = 10 dropout = 0.3
+        e_layers = 3  d_layers = 2
+          Is scaler :FalseAfter training train\20190401_20190412  Train_loss:1.006976 R2:0.160735 | Val_Loss:0.826156 |R2:0.320658 |Rate:0.679 |lr:0.000281
+After training train\20190523_20190604  Train_loss:0.673980 R2:0.321797 | Val_Loss:0.679449 |R2:0.323021 |Rate:0.678 |lr:0.000529
+Save here
+Test_Loss:0.310874 |R2:0.322578 |Rate:0.668 
+Epoch:  1 |Train_Loss:0.840478 |R2:0.241266|Val_Loss:0.752803 |R2:0.321840 |Rate:0.679|lr:0.000529
+After training train\20190401_20190412  Train_loss:0.793827 R2:0.339153 | Val_Loss:0.800726 |R2:0.333853 |Rate:0.677 |lr:0.000811
+After training train\20190523_20190604  Train_loss:0.658140 R2:0.336951 | Val_Loss:0.649063 |R2:0.352042 |Rate:0.686 |lr:0.000808
+Save here
+Test_Loss:0.304415 |R2:0.334985 |Rate:0.671 
+Epoch:  2 |Train_Loss:0.725983 |R2:0.338052|Val_Loss:0.724894 |R2:0.342948 |Rate:0.682|lr:0.000808
+After training train\20190401_20190412  Train_loss:0.779325 R2:0.350268 | Val_Loss:0.806570 |R2:0.332372 |Rate:0.685 |lr:0.000718
+After training train\20190523_20190604  Train_loss:0.652051 R2:0.345185 | Val_Loss:0.641490 |R2:0.352528 |Rate:0.685 |lr:0.000659
+Save here
+Test_Loss:0.306594 |R2:0.328880 |Rate:0.668 
+Epoch:  3 |Train_Loss:0.715688 |R2:0.347727|Val_Loss:0.724030 |R2:0.342450 |Rate:0.685|lr:0.000659
+After training train\20190401_20190412  Train_loss:0.768358 R2:0.362120 | Val_Loss:0.891797 |R2:0.248208 |Rate:0.636 |lr:0.000608
+After training train\20190523_20190604  Train_loss:0.642279 R2:0.352405 | Val_Loss:0.676155 |R2:0.327121 |Rate:0.666 |lr:0.000571
+Save here
+Test_Loss:0.324795 |R2:0.287885 |Rate:0.649 
+Epoch:  4 |Train_Loss:0.705318 |R2:0.357263|Val_Loss:0.783976 |R2:0.287665 |Rate:0.651|lr:0.000571

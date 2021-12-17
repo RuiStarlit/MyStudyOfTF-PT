@@ -28,6 +28,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 # from utils import *
 from models import *
+from models_backup import *
 from utils1 import *
 from Mytools import EarlyStopping_R2
 
@@ -95,10 +96,22 @@ class Train_transformer():
         self.val_every = False
         self.test_every =False
 
-    def _build_model(self, opt=None):
-        model = Transformer(dim_val=self.d_model, dim_attn=self.d_ff, enc_in=self.enc_in, dec_in=self.dec_in,
-                            out_seq_len=self.out_len, n_encoder_layers=self.e_layers, n_decoder_layers=self.d_layers,
-                            n_heads=self.n_heads, dropout=self.dropout, label_len=self.label_len)
+    def _build_model(self, opt=None, m=None):
+        if m is None:
+            model = Transformer(dim_val=self.d_model, dim_attn=self.d_ff, enc_in=self.enc_in, dec_in=self.dec_in,
+                                out_seq_len=self.out_len, n_encoder_layers=self.e_layers, n_decoder_layers=self.d_layers,
+                                n_heads=self.n_heads, dropout=self.dropout, label_len=self.label_len)
+        elif m == 'lstm':
+            model = Transformer_LSTM(dim_val=self.d_model, dim_attn=self.d_ff, enc_in=self.enc_in, dec_in=self.dec_in,
+                                out_seq_len=self.out_len, n_encoder_layers=self.e_layers, n_decoder_layers=self.d_layers,
+                                n_heads=self.n_heads, dropout=self.dropout, label_len=self.label_len)
+        elif m =='trans':
+            model = Transformer_(dim_val=self.d_model, dim_attn=self.d_ff, enc_in=self.enc_in, dec_in=self.dec_in,
+                                     out_seq_len=self.out_len, n_encoder_layers=self.e_layers,
+                                     n_decoder_layers=self.d_layers,
+                                     n_heads=self.n_heads, dropout=self.dropout, label_len=self.label_len)
+        else:
+            raise NotImplementedError()
 
         model.to(self.device)
 
@@ -122,6 +135,8 @@ class Train_transformer():
             self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr, weight_decay=0.01)
         elif opt == 'adamW':
             self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr)
+        elif opt =='sgdm':
+            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr, weight_decay=0.01, momentum=0.9)
         else:
             raise NotImplementedError()
 
@@ -232,7 +247,7 @@ class Train_transformer():
                    ))
         f.close()
 
-    def process_one_batch(self, batch_x, batch_y, ct):
+    def process_one_batch(self, batch_x, batch_y):
         # global is_print
         # 对Dataloader返回的y值进行处理，提取出模型使用的时间序列部分和用于计算误差的对比部分
 
@@ -258,21 +273,27 @@ class Train_transformer():
     def single_train(self):
         self.model.train()
         train_loss = np.empty((len(self.dataset),))
+        # train_loss2 = np.empty((len(self.dataset),))
         train_r2 = np.empty((len(self.dataset),))
         for i in range(len(self.dataset)):
-            x, y, ct = self.dataset(i)
+            x, y = self.dataset(i)
             self.optimizer.zero_grad()
-            pred, Y = self.process_one_batch(x, y, ct)
+            pred, Y = self.process_one_batch(x, y)
 
-            # print('pred',pred[:, :].shape)
-            # print('Y', Y[:, :, 0].shape)
+            # print('pred',pred.shape)
+            # print('Y', Y.shape)
             # sys.exit('QAQ')
 
+            # loss2 = F.binary_cross_entropy(sign, torch.gt(Y[:, :, 0], 0).float())
             loss = self.criterion(pred[:, :], Y[:, :, 0])
+
+            # if i == len(self.dataset)-1:
+            #     print(sign)
 
             # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
 
             train_loss[i] = loss.item()
+            # train_loss2[i] = loss2.item()
             loss.backward()
             if self.clip_grad:
                 nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=20, norm_type=2)
@@ -284,11 +305,19 @@ class Train_transformer():
             #     if i % self.decay == 0:
             #         self.scheduler.step(loss)
 
+            # pred = torch.abs(pred)
+            # b = sign > 0.5
+            # c = b.float()
+            # c[b == False] = -1
+            # pred = c*pred
+
+
             r2 = fr2(pred[:, -1], Y[:, -1, 0]).cpu().detach().numpy()
             train_r2[i] = r2
 
         train_loss = train_loss.mean()
         train_r2 = train_r2.mean()
+        # train_loss2 = train_loss2.mean()
         return train_loss, train_r2
 
     def train_one_epoch(self, train_all=True, f=None, bost=False, val_size=0.1):
@@ -308,8 +337,10 @@ class Train_transformer():
             val_loss, val_r2, val_rate = self.val(f, valid_idx)
         else:
             loss = np.empty((len(self.train_f),))
+            # loss2 = np.empty((len(self.train_f),))
             r2 = np.empty((len(self.train_f),))
             val_loss = np.empty((len(self.train_f),))
+            # val_loss2 = np.empty((len(self.train_f),))
             val_r2 = np.empty((len(self.train_f),))
             val_rate = np.empty((len(self.train_f),))
             conter = 0
@@ -327,11 +358,13 @@ class Train_transformer():
                                                label_len=self.label_len, index=train_idx)
                 train_loss, train_r2 = self.single_train()
                 loss[conter] = train_loss
+                # loss2[conter] = train_loss2
                 r2[conter] = train_r2
                 del (self.dataset)
 
                 val_loss_, val_r2_, val_rate_ = self.val(f, valid_idx)
                 val_loss[conter] = val_loss_
+                # val_loss2[conter] = val_loss2_
                 val_rate[conter] = val_rate_
                 val_r2[conter] = val_r2_
                 conter += 1
@@ -341,6 +374,7 @@ class Train_transformer():
                         f'| Val_Loss:{val_loss_:.6f} '
                         f'|R2:{val_r2_:.6f} |Rate:{val_rate_:.3f} |'
                         f'lr:{self.optimizer.state_dict()["param_groups"][0]["lr"]:.6f}')
+                    # print(f'auxiliary info: Train_Loss2:{train_loss2:.6f} | Val_Loss2:{val_loss2_:.6f}')
                     file = open('log/{}.txt'.format(self.name), 'a+')
                     file.write(
                         f'After training {f.split("/")[-1].split(".")[0]}  Train_loss:{train_loss:.6f} R2:{train_r2:.6f} '
@@ -356,9 +390,11 @@ class Train_transformer():
                     file.close()
 
             val_loss = val_loss.mean()
+            # val_loss2 = val_loss2.mean()
             val_r2 = val_r2.mean()
             val_rate = val_rate.mean()
             loss = loss.mean()
+            # loss2 = loss.mean()
             r2 = r2.mean()
         return loss, r2, val_loss, val_r2, val_rate
 
@@ -368,26 +404,35 @@ class Train_transformer():
                               label_len=self.label_len, index=index)
 
         val_loss = np.empty((len(dataset),))
+        # val_loss2 = np.empty((len(dataset),))
         val_rate = np.empty((len(dataset),))
         pred_list = []
         y_list = []
         with torch.no_grad():
             for i in range(len(dataset)):
-                x, y, ct = dataset(i)
+                x, y = dataset(i)
 
-                pred, Y = self.process_one_batch(x, y, ct)
+                pred, Y = self.process_one_batch(x, y)
 
+                # loss2 = F.binary_cross_entropy(sign, torch.gt(Y[:, :, 0], 0).float())
                 loss = self.criterion(pred[:, :], Y[:, :, 0])
                 # 0.4 * torch.mean(torch.square(pred[:, 10:, 0] - Y[:, 10:, 0]))
-                # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
+
+                # pred = torch.abs(pred)
+                # b = sign > 0.5
+                # c = b.float()
+                # c[b == False] = -1
+                # pred = c * pred
 
                 val_loss[i] = loss.item()
+                # val_loss2[i] = loss2.item()
                 val_rate[i] = frate(pred[:, -1], Y[:, -1, 0]).detach().cpu().numpy()
                 pred_list.append(pred[:, -1].detach().cpu().numpy())
                 y_list.append(Y[:, -1, 0].detach().cpu().numpy())
             pred = np.concatenate(pred_list)
             y = np.concatenate(y_list)
             val_loss = val_loss.mean()
+            # val_loss2 = val_loss2.mean()
             val_rate = val_rate.mean()
             val_r2 = fr2_n(pred, y)
         del (dataset)
@@ -457,8 +502,10 @@ class Train_transformer():
         early_stopping = EarlyStopping_R2(patience=patience, verbose=True, val_r2=self.best_val_r2)
 
         train_loss = np.empty((epochs,))
+        # train_loss2 = np.empty((epochs,))
         train_r2 = np.empty((epochs,))
         val_loss = np.empty((epochs,))
+        # val_loss2 = np.empty((epochs,))
         val_r2 = np.empty((epochs,))
         val_rate = np.empty((epochs,))
         start_epoch = self.epoch + continued
@@ -467,6 +514,7 @@ class Train_transformer():
 
             loss, r2, v_loss, v_r2, v_rate = self.train_one_epoch(train_all, f, bost, val_size)
             train_loss[epoch] = loss
+            # train_loss2[epoch] = loss2
             train_r2[epoch] = r2
             # if not self.opt_schedule:
             if self.noam is False:
@@ -477,6 +525,7 @@ class Train_transformer():
             #     loss, r2, rate = 0, 0, 0
 
             val_loss[epoch] = v_loss
+            # val_loss2[epoch] = v_loss2
             val_r2[epoch] = v_r2
             val_rate[epoch] = v_rate
 
@@ -504,6 +553,7 @@ class Train_transformer():
                     start_epoch + epoch + 1,
                     train_loss[epoch], train_r2[epoch], val_loss[epoch], val_r2[epoch], val_rate[epoch],
                     self.optimizer.state_dict()['param_groups'][0]['lr']))
+            # print(f'auxiliary info: Train_Loss2:{train_loss2[epoch]:.6f} | Val_Loss2:{val_loss2[epoch]:.6f}')
 
             if (epoch+1) % test_round == 0:
                 loss, r2, rate, _, _, _ = self.test_all()
@@ -581,13 +631,18 @@ class Train_transformer():
         y_list = []
         with torch.no_grad():
             for i in range(len(dataset)):
-                x, y, ct = dataset(i)
+                x, y = dataset(i)
 
-                pred, Y = self.process_one_batch(x, y, ct)
+                pred, Y = self.process_one_batch(x, y)
 
                 loss = self.criterion(pred[:, :], Y[:, :, 0])
                 # 0.4 * torch.mean(torch.square(pred[:, 10:, 0] - Y[:, 10:, 0]))
                 # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
+                # pred = torch.abs(pred)
+                # b = sign > 0.5
+                # c = b.float()
+                # c[b == False] = -1
+                # pred = c * pred
 
                 test_loss[i] = loss.item()
                 rate[i] = frate(pred[:, -1], Y[:, -1, 0]).detach().cpu().numpy()
@@ -618,7 +673,7 @@ class Train_transformer():
 
             with torch.no_grad():
                 for i in range(len(dataset)):
-                    x, y, ct = dataset(i)
+                    x, y = dataset(i)
                     if y.shape[0] == 0:
                         # 数据集末尾的batch太小，数据缺失导致无法预测。实际业务情况下不需要对比实际值就没问题
                         # print('batch erro on', f, i)
@@ -626,11 +681,16 @@ class Train_transformer():
                         val_rate[i] = val_rate[:i].mean()
                         break
 
-                    pred, Y = self.process_one_batch(x, y, ct)
+                    pred, Y = self.process_one_batch(x, y)
 
                     loss = self.criterion(pred[:, :], Y[:, :, 0])
                     # 0.4 * torch.mean(torch.square(pred[:, 10:, 0] - Y[:, 10:, 0]))
                     # F.binary_cross_entropy_with_logits(pred, torch.gt(Y, 0).float())
+                    # pred = torch.abs(pred)
+                    # b = sign > 0.5
+                    # c = b.float()
+                    # c[b == False] = -1
+                    # pred = c * pred
 
                     val_loss[i] = loss.item()
                     val_rate[i] = frate(pred[:, -1], Y[:, -1, 0]).detach().cpu().numpy()
@@ -698,15 +758,17 @@ class MyDataset_p():
         f = h5py.File(self.name, 'r')
         x = f['x'][:]
         y = f['y'][:]
-        ct = f['codedtime'][:]
+        self.v = f['var'][()]
+        self.m = f['mean'][()]
+        # ct = f['codedtime'][:]
         if index is None:
             self.x = x
             self.y = y
-            self.ct = ct
+            # self.ct = ct
         else:
             self.x = x[index]
             self.y = y[index]
-            self.ct = ct[index]
+            # self.ct = ct[index]
         f.close()
 
     def __call__(self, i):
@@ -717,7 +779,7 @@ class MyDataset_p():
 
         X = torch.from_numpy(X).to(self.device).float()
         # Y = torch.from_numpy(Y)
-        return X, Y, self.ct[batch_index]
+        return X, Y
 
     def __len__(self):
         return int(np.ceil(self.n / self.batch_size))
