@@ -1,0 +1,226 @@
+The Hyperparameter:
+        d_model = 16 d_ff = 16
+        n_heads = 4 Batch_size = 16 lr = 0.001
+        label_len = 1 dropout = 0.1
+        e_layers = 2  d_layers = 2
+          Save here
+Epoch:  1 |Train_Loss:62.319301 |Val_Loss:8.812417 |lr:0.007531
+Save here
+Epoch:  2 |Train_Loss:8.952071 |Val_Loss:6.314720 |lr:0.005325
+Save here
+Epoch:  3 |Train_Loss:5.891634 |Val_Loss:5.094293 |lr:0.004348
+Save here
+Epoch:  4 |Train_Loss:5.056771 |Val_Loss:4.756789 |lr:0.003765
+Epoch:  5 |Train_Loss:5.229682 |Val_Loss:5.103014 |lr:0.003368
+Save here
+Epoch:  6 |Train_Loss:4.706327 |Val_Loss:4.935171 |lr:0.003074
+Save here
+Epoch:  7 |Train_Loss:4.325528 |Val_Loss:5.227444 |lr:0.002846
+Save here
+Epoch:  8 |Train_Loss:4.187220 |Val_Loss:4.934830 |lr:0.002663
+Save here
+Epoch:  9 |Train_Loss:4.079020 |Val_Loss:4.692034 |lr:0.002510
+Save here
+Epoch: 10 |Train_Loss:4.057852 |Val_Loss:4.680395 |lr:0.002381
+Save here
+Epoch: 11 |Train_Loss:3.888308 |Val_Loss:4.520660 |lr:0.002271
+Save here
+Epoch: 12 |Train_Loss:3.840501 |Val_Loss:4.361946 |lr:0.002174
+Save here
+Epoch: 13 |Train_Loss:3.724091 |Val_Loss:4.729614 |lr:0.002089
+Epoch: 14 |Train_Loss:3.778692 |Val_Loss:5.251535 |lr:0.002013
+Save here
+Epoch: 15 |Train_Loss:3.630977 |Val_Loss:4.272521 |lr:0.001944
+Epoch: 16 |Train_Loss:3.765553 |Val_Loss:4.977430 |lr:0.001883
+Epoch: 17 |Train_Loss:3.662450 |Val_Loss:4.569702 |lr:0.001827
+Save here
+Epoch: 18 |Train_Loss:3.624494 |Val_Loss:4.338648 |lr:0.001775
+Save here
+Epoch: 19 |Train_Loss:3.540807 |Val_Loss:4.267561 |lr:0.001728
+Epoch: 20 |Train_Loss:3.579572 |Val_Loss:4.634654 |lr:0.001684
+Epoch: 21 |Train_Loss:3.565919 |Val_Loss:4.413944 |lr:0.001643
+Save here
+Epoch: 22 |Train_Loss:3.519115 |Val_Loss:4.327319 |lr:0.001606
+Save here
+Epoch: 23 |Train_Loss:3.484483 |Val_Loss:4.768781 |lr:0.001570
+Save here
+Epoch: 24 |Train_Loss:3.451243 |Val_Loss:4.606991 |lr:0.001537
+Save here
+Epoch: 25 |Train_Loss:3.417377 |Val_Loss:4.220210 |lr:0.001506
+Save here
+Epoch: 26 |Train_Loss:3.393620 |Val_Loss:4.205008 |lr:0.001477
+Save here
+Epoch: 27 |Train_Loss:3.386310 |Val_Loss:4.204441 |lr:0.001449
+Save here
+Epoch: 28 |Train_Loss:3.340812 |Val_Loss:4.385518 |lr:0.001423
+Epoch: 29 |Train_Loss:3.366671 |Val_Loss:4.341468 |lr:0.001398
+Epoch: 30 |Train_Loss:3.342097 |Val_Loss:4.207492 |lr:0.001375
+Epoch: 31 |Train_Loss:3.341155 |Val_Loss:4.204346 |lr:0.001353
+Epoch: 32 |Train_Loss:3.358469 |Val_Loss:4.320244 |lr:0.001331
+Save here
+Epoch: 33 |Train_Loss:3.338804 |Val_Loss:4.316545 |lr:0.001311
+Epoch: 34 |Train_Loss:3.341031 |Val_Loss:4.120410 |lr:0.001292
+Save here
+Epoch: 35 |Train_Loss:3.331046 |Val_Loss:4.192668 |lr:0.001273
+Save here
+Epoch: 36 |Train_Loss:3.307392 |Val_Loss:4.108817 |lr:0.001255
+Save here
+Epoch: 37 |Train_Loss:3.276336 |Val_Loss:4.109548 |lr:0.001238
+Save here
+Epoch: 38 |Train_Loss:3.265737 |Val_Loss:4.249356 |lr:0.001222
+Save here
+Epoch: 39 |Train_Loss:3.263693 |Val_Loss:3.979915 |lr:0.001206
+Save here
+Epoch: 40 |Train_Loss:3.254001 |Val_Loss:4.035040 |lr:0.001191
+Save here
+Epoch: 41 |Train_Loss:3.247184 |Val_Loss:3.958662 |lr:0.001176
+Save here
+Epoch: 42 |Train_Loss:3.237953 |Val_Loss:4.015635 |lr:0.001162
+Save here
+Epoch: 43 |Train_Loss:3.228549 |Val_Loss:4.017928 |lr:0.001148
+Save here
+Epoch: 44 |Train_Loss:3.206988 |Val_Loss:3.955890 |lr:0.001135
+Save here
+Epoch: 45 |Train_Loss:3.201773 |Val_Loss:3.952355 |lr:0.001123
+Save here
+Epoch: 46 |Train_Loss:3.188191 |Val_Loss:3.950564 |lr:0.001110
+Epoch: 47 |Train_Loss:3.195566 |Val_Loss:3.945791 |lr:0.001099
+Save here
+Epoch: 48 |Train_Loss:3.174865 |Val_Loss:4.017854 |lr:0.001087
+Save here
+Epoch: 49 |Train_Loss:3.146545 |Val_Loss:3.935775 |lr:0.001076
+Epoch: 50 |Train_Loss:3.156020 |Val_Loss:3.850081 |lr:0.001065
+Epoch: 51 |Train_Loss:3.148772 |Val_Loss:3.821639 |lr:0.001055
+Epoch: 52 |Train_Loss:3.151099 |Val_Loss:3.869290 |lr:0.001044
+Save here
+Epoch: 53 |Train_Loss:3.131039 |Val_Loss:3.980165 |lr:0.001034
+Save here
+Epoch: 54 |Train_Loss:3.120456 |Val_Loss:3.850156 |lr:0.001025
+Epoch: 55 |Train_Loss:3.129114 |Val_Loss:3.825138 |lr:0.001015
+Save here
+Epoch: 56 |Train_Loss:3.102780 |Val_Loss:3.849191 |lr:0.001006
+Save here
+Epoch: 57 |Train_Loss:3.086772 |Val_Loss:3.811837 |lr:0.000997
+Epoch: 58 |Train_Loss:3.099956 |Val_Loss:3.888491 |lr:0.000989
+Epoch: 59 |Train_Loss:3.092474 |Val_Loss:3.757641 |lr:0.000980
+Save here
+Epoch: 60 |Train_Loss:3.064033 |Val_Loss:3.883471 |lr:0.000972
+Save here
+Epoch: 61 |Train_Loss:3.043152 |Val_Loss:3.816565 |lr:0.000964
+Epoch: 62 |Train_Loss:3.052586 |Val_Loss:3.986359 |lr:0.000956
+Epoch: 63 |Train_Loss:3.057406 |Val_Loss:4.011678 |lr:0.000949
+Save here
+Epoch: 64 |Train_Loss:3.027857 |Val_Loss:3.790071 |lr:0.000941
+Epoch: 65 |Train_Loss:3.028348 |Val_Loss:3.926826 |lr:0.000934
+Epoch: 66 |Train_Loss:3.039527 |Val_Loss:3.845530 |lr:0.000927
+Epoch: 67 |Train_Loss:3.030545 |Val_Loss:3.724984 |lr:0.000920
+Save here
+Epoch: 68 |Train_Loss:3.004635 |Val_Loss:3.803806 |lr:0.000913
+Save here
+Epoch: 69 |Train_Loss:2.998291 |Val_Loss:3.802120 |lr:0.000907
+Epoch: 70 |Train_Loss:2.999895 |Val_Loss:3.859151 |lr:0.000900
+Save here
+Epoch: 71 |Train_Loss:2.994696 |Val_Loss:3.834020 |lr:0.000894
+Save here
+Epoch: 72 |Train_Loss:2.994567 |Val_Loss:3.795500 |lr:0.000888
+Save here
+Epoch: 73 |Train_Loss:2.966658 |Val_Loss:3.756826 |lr:0.000881
+Save here
+Epoch: 74 |Train_Loss:2.954371 |Val_Loss:3.775012 |lr:0.000875
+Epoch: 75 |Train_Loss:2.981471 |Val_Loss:3.872413 |lr:0.000870
+Save here
+Epoch: 76 |Train_Loss:2.953919 |Val_Loss:3.695711 |lr:0.000864
+Save here
+Epoch: 77 |Train_Loss:2.945494 |Val_Loss:3.733377 |lr:0.000858
+Save here
+Epoch: 78 |Train_Loss:2.935118 |Val_Loss:3.792450 |lr:0.000853
+Epoch: 79 |Train_Loss:2.936745 |Val_Loss:3.925167 |lr:0.000847
+Epoch: 80 |Train_Loss:2.951385 |Val_Loss:3.809424 |lr:0.000842
+Epoch: 81 |Train_Loss:2.939803 |Val_Loss:3.856777 |lr:0.000837
+Epoch: 82 |Train_Loss:2.938730 |Val_Loss:3.754096 |lr:0.000832
+Save here
+Epoch: 83 |Train_Loss:2.931395 |Val_Loss:3.869073 |lr:0.000827
+Save here
+Epoch: 84 |Train_Loss:2.886558 |Val_Loss:3.728038 |lr:0.000822
+Epoch: 85 |Train_Loss:2.897549 |Val_Loss:3.887031 |lr:0.000817
+Save here
+Epoch: 86 |Train_Loss:2.876664 |Val_Loss:3.902052 |lr:0.000812
+Epoch: 87 |Train_Loss:2.891631 |Val_Loss:3.701014 |lr:0.000807
+Epoch: 88 |Train_Loss:2.883126 |Val_Loss:3.883526 |lr:0.000803
+Save here
+Epoch: 89 |Train_Loss:2.851830 |Val_Loss:3.781793 |lr:0.000798
+Epoch: 90 |Train_Loss:2.862144 |Val_Loss:3.785983 |lr:0.000794
+Epoch: 91 |Train_Loss:2.861431 |Val_Loss:3.682061 |lr:0.000789
+Epoch: 92 |Train_Loss:2.856980 |Val_Loss:3.940779 |lr:0.000785
+Save here
+Epoch: 93 |Train_Loss:2.824916 |Val_Loss:3.869949 |lr:0.000781
+Epoch: 94 |Train_Loss:2.854530 |Val_Loss:3.882129 |lr:0.000777
+Epoch: 95 |Train_Loss:2.829688 |Val_Loss:3.791615 |lr:0.000773
+Save here
+Epoch: 96 |Train_Loss:2.815707 |Val_Loss:3.886329 |lr:0.000769
+Epoch: 97 |Train_Loss:2.819182 |Val_Loss:3.833956 |lr:0.000765
+Save here
+Epoch: 98 |Train_Loss:2.815614 |Val_Loss:3.809334 |lr:0.000761
+Save here
+Epoch: 99 |Train_Loss:2.806604 |Val_Loss:3.667227 |lr:0.000757
+Save here
+Epoch:100 |Train_Loss:2.800180 |Val_Loss:3.922735 |lr:0.000753
+Epoch:101 |Train_Loss:2.810326 |Val_Loss:3.877387 |lr:0.000749
+Save here
+Epoch:102 |Train_Loss:2.796462 |Val_Loss:3.858018 |lr:0.000746
+Save here
+Epoch:103 |Train_Loss:2.787591 |Val_Loss:3.858542 |lr:0.000742
+Epoch:104 |Train_Loss:2.811402 |Val_Loss:3.871592 |lr:0.000738
+Epoch:105 |Train_Loss:2.840459 |Val_Loss:3.884800 |lr:0.000735
+Save here
+Epoch:106 |Train_Loss:2.783694 |Val_Loss:3.935161 |lr:0.000731
+Save here
+Epoch:107 |Train_Loss:2.774470 |Val_Loss:3.927686 |lr:0.000728
+Save here
+Epoch:108 |Train_Loss:2.767862 |Val_Loss:3.972728 |lr:0.000725
+Epoch:109 |Train_Loss:2.771132 |Val_Loss:3.865548 |lr:0.000721
+Save here
+Epoch:110 |Train_Loss:2.767680 |Val_Loss:3.711298 |lr:0.000718
+Save here
+Epoch:111 |Train_Loss:2.748793 |Val_Loss:3.874083 |lr:0.000715
+Epoch:112 |Train_Loss:2.756631 |Val_Loss:3.929951 |lr:0.000712
+Epoch:113 |Train_Loss:2.752662 |Val_Loss:3.927724 |lr:0.000708
+Epoch:114 |Train_Loss:2.755058 |Val_Loss:3.804280 |lr:0.000705
+Save here
+Epoch:115 |Train_Loss:2.745772 |Val_Loss:3.918637 |lr:0.000702
+Save here
+Epoch:116 |Train_Loss:2.725288 |Val_Loss:3.769607 |lr:0.000699
+Epoch:117 |Train_Loss:2.728710 |Val_Loss:3.962133 |lr:0.000696
+Epoch:118 |Train_Loss:2.738031 |Val_Loss:4.033578 |lr:0.000693
+Save here
+Epoch:119 |Train_Loss:2.720613 |Val_Loss:4.012414 |lr:0.000690
+Save here
+Epoch:120 |Train_Loss:2.716471 |Val_Loss:3.843315 |lr:0.000687
+Save here
+Epoch:121 |Train_Loss:2.691130 |Val_Loss:3.713206 |lr:0.000685
+Save here
+Epoch:122 |Train_Loss:2.687979 |Val_Loss:3.714090 |lr:0.000682
+Epoch:123 |Train_Loss:2.710969 |Val_Loss:3.866478 |lr:0.000679
+Epoch:124 |Train_Loss:2.691076 |Val_Loss:3.965401 |lr:0.000676
+Epoch:125 |Train_Loss:2.721836 |Val_Loss:3.930533 |lr:0.000674
+Epoch:126 |Train_Loss:2.695410 |Val_Loss:3.969466 |lr:0.000671
+Save here
+Epoch:127 |Train_Loss:2.681794 |Val_Loss:4.019536 |lr:0.000668
+Epoch:128 |Train_Loss:2.683810 |Val_Loss:3.890931 |lr:0.000666
+Save here
+Epoch:129 |Train_Loss:2.663668 |Val_Loss:4.004570 |lr:0.000663
+Epoch:130 |Train_Loss:2.679068 |Val_Loss:3.964691 |lr:0.000661
+Epoch:131 |Train_Loss:2.675107 |Val_Loss:3.857873 |lr:0.000658
+Save here
+Epoch:132 |Train_Loss:2.658228 |Val_Loss:3.817069 |lr:0.000655
+Save here
+Epoch:133 |Train_Loss:2.649425 |Val_Loss:4.007967 |lr:0.000653
+Epoch:134 |Train_Loss:2.655136 |Val_Loss:3.876100 |lr:0.000651
+Save here
+Epoch:135 |Train_Loss:2.645354 |Val_Loss:4.007006 |lr:0.000648
+Save here
+Epoch:136 |Train_Loss:2.614799 |Val_Loss:3.948292 |lr:0.000646
+Epoch:137 |Train_Loss:2.650100 |Val_Loss:3.837778 |lr:0.000643
+Epoch:138 |Train_Loss:2.631597 |Val_Loss:3.982392 |lr:0.000641
+Epoch:139 |Train_Loss:2.631569 |Val_Loss:3.968469 |lr:0.000639
+Early stopping

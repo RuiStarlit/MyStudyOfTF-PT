@@ -1,0 +1,24 @@
+The Hyperparameter:
+        d_model = 16 d_ff = 16
+        n_heads = 4 Batch_size = 128 lr = 0.001
+        label_len = 1 dropout = 0.1
+        e_layers = 2  d_layers = 2
+          Save here
+Epoch:  1 |Train_Loss:78.720525 |Val_Loss:26.790642 |lr:0.001447
+Save here
+Epoch:  2 |Train_Loss:8.814227 |Val_Loss:2.087455 |lr:0.002893
+Save here
+Epoch:  3 |Train_Loss:1.803194 |Val_Loss:1.461530 |lr:0.004340
+Save here
+Epoch:  4 |Train_Loss:1.415377 |Val_Loss:1.649567 |lr:0.005787
+Epoch:  5 |Train_Loss:1.626247 |Val_Loss:1.152537 |lr:0.007234
+Save here
+Epoch:  6 |Train_Loss:1.103619 |Val_Loss:0.833285 |lr:0.007545
+Save here
+Epoch:  7 |Train_Loss:0.932199 |Val_Loss:0.719984 |lr:0.006985
+Save here
+Epoch:  8 |Train_Loss:0.911054 |Val_Loss:0.956413 |lr:0.006534
+Save here
+Epoch:  9 |Train_Loss:0.832296 |Val_Loss:0.876807 |lr:0.006160
+Save here
+Epoch: 10 |Train_Loss:0.791382 |Val_Loss:0.786789 |lr:0.005844

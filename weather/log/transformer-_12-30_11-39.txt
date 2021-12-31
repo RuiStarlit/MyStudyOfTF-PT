@@ -1,0 +1,61 @@
+The Hyperparameter:
+        d_model = 8 d_ff = 8
+        n_heads = 4 Batch_size = 32 lr = 0.001
+        label_len = 1 dropout = 0.1
+        e_layers = 3  d_layers = 3
+          Save here
+Epoch:  1 |Train_Loss:108.931671 |Val_Loss:11.188066 |lr:0.006160
+Save here
+Epoch:  2 |Train_Loss:9.218632 |Val_Loss:5.963849 |lr:0.010650
+Save here
+Epoch:  3 |Train_Loss:7.946215 |Val_Loss:5.750835 |lr:0.008696
+Save here
+Epoch:  4 |Train_Loss:6.175969 |Val_Loss:5.277164 |lr:0.007531
+Save here
+Epoch:  5 |Train_Loss:5.353497 |Val_Loss:7.782716 |lr:0.006736
+Save here
+Epoch:  6 |Train_Loss:5.015702 |Val_Loss:5.350854 |lr:0.006149
+Save here
+Epoch:  7 |Train_Loss:5.003411 |Val_Loss:5.455113 |lr:0.005693
+Save here
+Epoch:  8 |Train_Loss:4.849797 |Val_Loss:5.722030 |lr:0.005325
+Save here
+Epoch:  9 |Train_Loss:4.713031 |Val_Loss:6.839846 |lr:0.005021
+Save here
+Epoch: 10 |Train_Loss:4.434623 |Val_Loss:5.211624 |lr:0.004763
+Epoch: 11 |Train_Loss:4.603203 |Val_Loss:5.212347 |lr:0.004541
+Save here
+Epoch: 12 |Train_Loss:4.379506 |Val_Loss:5.147435 |lr:0.004348
+Save here
+Epoch: 13 |Train_Loss:4.286058 |Val_Loss:6.332745 |lr:0.004177
+Save here
+Epoch: 14 |Train_Loss:4.220429 |Val_Loss:5.795608 |lr:0.004025
+Save here
+Epoch: 15 |Train_Loss:4.198687 |Val_Loss:5.325444 |lr:0.003889
+Save here
+Epoch: 16 |Train_Loss:4.175717 |Val_Loss:5.087602 |lr:0.003765
+Save here
+Epoch: 17 |Train_Loss:4.103450 |Val_Loss:4.881755 |lr:0.003653
+Save here
+Epoch: 18 |Train_Loss:4.027904 |Val_Loss:5.769391 |lr:0.003550
+Save here
+Epoch: 19 |Train_Loss:3.969644 |Val_Loss:5.184823 |lr:0.003455
+Save here
+Epoch: 20 |Train_Loss:3.953571 |Val_Loss:5.650691 |lr:0.003368
+Save here
+Epoch: 21 |Train_Loss:3.917676 |Val_Loss:4.768455 |lr:0.003287
+Epoch: 22 |Train_Loss:3.982628 |Val_Loss:4.977020 |lr:0.003211
+Epoch: 23 |Train_Loss:3.940825 |Val_Loss:4.954800 |lr:0.003141
+Save here
+Epoch: 24 |Train_Loss:3.844818 |Val_Loss:5.044599 |lr:0.003074
+Save here
+Epoch: 25 |Train_Loss:3.799679 |Val_Loss:4.625829 |lr:0.003012
+Save here
+Epoch: 26 |Train_Loss:3.744760 |Val_Loss:5.487104 |lr:0.002954
+Save here
+Epoch: 27 |Train_Loss:3.634513 |Val_Loss:4.872364 |lr:0.002899
+Epoch: 28 |Train_Loss:3.773306 |Val_Loss:5.501884 |lr:0.002846
+Epoch: 29 |Train_Loss:3.687876 |Val_Loss:4.659276 |lr:0.002797
+Epoch: 30 |Train_Loss:3.794717 |Val_Loss:5.644356 |lr:0.002750
+Save here
+Epoch: 31 |Train_Loss:3.634007 |Val_Loss:4.770409 |lr:0.002705

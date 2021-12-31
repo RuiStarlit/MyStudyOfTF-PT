@@ -1,0 +1,45 @@
+The Hyperparameter:
+        d_model = 16 d_ff = 16
+        n_heads = 4 Batch_size = 32 lr = 0.001
+        label_len = 1 dropout = 0.1
+        e_layers = 2  d_layers = 2
+          Save here
+Epoch:  1 |Train_Loss:103.255737 |Val_Loss:8.334899 |lr:0.004356
+Save here
+Epoch:  2 |Train_Loss:10.026850 |Val_Loss:7.660577 |lr:0.007531
+Save here
+Epoch:  3 |Train_Loss:7.886052 |Val_Loss:5.877445 |lr:0.006149
+Save here
+Epoch:  4 |Train_Loss:6.107418 |Val_Loss:8.426700 |lr:0.005325
+Save here
+Epoch:  5 |Train_Loss:5.434109 |Val_Loss:5.397411 |lr:0.004763
+Save here
+Epoch:  6 |Train_Loss:4.809984 |Val_Loss:5.206695 |lr:0.004348
+Save here
+Epoch:  7 |Train_Loss:4.491544 |Val_Loss:4.882004 |lr:0.004025
+Epoch:  8 |Train_Loss:4.534889 |Val_Loss:6.047528 |lr:0.003765
+Save here
+Epoch:  9 |Train_Loss:4.257038 |Val_Loss:4.849984 |lr:0.003550
+Epoch: 10 |Train_Loss:4.362810 |Val_Loss:4.637947 |lr:0.003368
+Save here
+Epoch: 11 |Train_Loss:4.109636 |Val_Loss:4.756543 |lr:0.003211
+Save here
+Epoch: 12 |Train_Loss:3.947314 |Val_Loss:4.549792 |lr:0.003074
+Epoch: 13 |Train_Loss:3.974427 |Val_Loss:4.646537 |lr:0.002954
+Save here
+Epoch: 14 |Train_Loss:3.887281 |Val_Loss:4.636360 |lr:0.002846
+Epoch: 15 |Train_Loss:3.979436 |Val_Loss:4.718574 |lr:0.002750
+Save here
+Epoch: 16 |Train_Loss:3.883788 |Val_Loss:5.302856 |lr:0.002663
+Save here
+Epoch: 17 |Train_Loss:3.749329 |Val_Loss:4.213381 |lr:0.002583
+Save here
+Epoch: 18 |Train_Loss:3.711894 |Val_Loss:4.638410 |lr:0.002510
+Save here
+Epoch: 19 |Train_Loss:3.642562 |Val_Loss:5.149780 |lr:0.002443
+Save here
+Epoch: 20 |Train_Loss:3.599283 |Val_Loss:4.261262 |lr:0.002381
+Save here
+Epoch: 21 |Train_Loss:3.559434 |Val_Loss:5.227371 |lr:0.002324
+Save here
+Epoch: 22 |Train_Loss:3.526019 |Val_Loss:5.253436 |lr:0.002271
