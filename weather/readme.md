@@ -1,4 +1,11 @@
-##### Requirements：
+## 2021Fall 数院软件课HW
+
+使用LSTM和Transformer对天气数据进行预测
+
+
+
+#####  Requirements：
+
 * Python 3.8
 * numpy
 * pytorch
